@@ -404,8 +404,8 @@ public class PlayerStats : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.V)) { Upgrade_IncreaseCartSpeed(); }
-        if (Input.GetKeyDown(KeyCode.B)) { Upgrade_UnlockDash(); }
-        if (Input.GetKeyDown(KeyCode.J)) { Upgrade_UnlockDirectionChange(); }
+        if (Input.GetKeyDown(KeyCode.V)) { Upgrade_TiroMelhorado(); }
+        if (Input.GetKeyDown(KeyCode.B)) { Upgrade_AdicionarTiro(); }
+        if (Input.GetKeyDown(KeyCode.J)) { Upgrade_UnlockDash(); }
     }
 }

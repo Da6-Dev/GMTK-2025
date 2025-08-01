@@ -7,7 +7,7 @@ public class SistemaDeVida : MonoBehaviour
     public int vidaMaxima = 100;
 
     // Variável privada para armazenar a vida atual.
-    private int vidaAtual;
+    public int vidaAtual;
     private float damageMultiplier = 1f; 
 
     // A propriedade 'get' permite que outros scripts leiam a vida atual,

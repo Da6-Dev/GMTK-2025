@@ -80,7 +80,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 1, g: 0.7064719, b: 0, a: 1}
   m_FlipX: 0
@@ -178,7 +178,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   alvoObjeto: {fileID: 0}
-  velocidade: 1.5
+  velocidade: 0.6
   distanciaParaParar: 1
 --- !u!114 &8759081761504530187
 MonoBehaviour:
@@ -192,7 +192,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecdc37d78de34ea40a4db5378e4a0243, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  vidaMaxima: 50
+  vidaMaxima: 10
+  vidaAtual: 0
 --- !u!114 &5785956118044152142
 MonoBehaviour:
   m_ObjectHideFlags: 0

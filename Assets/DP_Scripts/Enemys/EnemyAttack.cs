@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class AtaqueInimigo : MonoBehaviour
+public class EnemyAttack : MonoBehaviour
 {
     [Header("Configurações de Ataque")]
     [Tooltip("O dano que este inimigo causa por ataque.")]
@@ -20,13 +20,14 @@ public class AtaqueInimigo : MonoBehaviour
     public Transform pontoDeDisparo;
 
     // Variáveis privadas
-    private InimigoIA ia;
+    private EnemyMovement ia; // Corrigido de InimigoIA para EnemyMovement
     private float proximoAtaquePermitido = 0f;
+    private float damageModifier = 1f;
 
     void Awake()
     {
         // Pega o componente de IA para saber se está no alcance
-        ia = GetComponent<InimigoIA>();
+        ia = GetComponent<EnemyMovement>(); // Corrigido de InimigoIA para EnemyMovement
     }
 
     void Update()
@@ -56,8 +57,9 @@ public class AtaqueInimigo : MonoBehaviour
     {
         // Se não for melee, ou se o tempo de ataque não passou, ou se não for o alvo, ignora.
         if (!ehMelee || Time.time < proximoAtaquePermitido || other.gameObject != ia.alvoObjeto) return;
-        
+
         // Tenta pegar o componente de vida do objeto que colidiu
+        // Supondo que você tenha um script "SistemaDeVida"
         SistemaDeVida vidaDoAlvo = other.GetComponent<SistemaDeVida>();
 
         if (vidaDoAlvo != null)
@@ -68,10 +70,12 @@ public class AtaqueInimigo : MonoBehaviour
 
     private void AtacarCorpoACorpo(SistemaDeVida alvo)
     {
-        Debug.Log(gameObject.name + " ataca corpo a corpo, causando " + dano + " de dano.");
-        alvo.ReceberDano(dano);
-        
-        // Define o tempo do próximo ataque
+        // Calcula o dano final com o modificador
+        int danoFinal = Mathf.RoundToInt(dano * damageModifier);
+
+        Debug.Log(gameObject.name + " ataca corpo a corpo, causando " + danoFinal + " de dano.");
+        alvo.ReceberDano(danoFinal); // Usa o dano final
+
         proximoAtaquePermitido = Time.time + tempoEntreAtaques;
     }
 
@@ -85,20 +89,22 @@ public class AtaqueInimigo : MonoBehaviour
         }
 
         Debug.Log(gameObject.name + " atira em direção ao alvo.");
-        
-        // Cria o projétil no ponto de disparo
+
         GameObject projetil = Instantiate(prefabDoProjetil, pontoDeDisparo.position, pontoDeDisparo.rotation);
-        
-        // ---- AQUI VOCÊ PRECISA DE UM SCRIPT NO PROJÉTIL ----
-        // O projétil precisa de seu próprio script para se mover e causar dano no impacto.
-        // Vamos supor que ele tenha um script "Projetil.cs" que recebe o dano a ser causado.
-        Projetil scriptDoProjetil = projetil.GetComponent<Projetil>();
+
+        EnemyProjectile scriptDoProjetil = projetil.GetComponent<EnemyProjectile>();
         if (scriptDoProjetil != null)
         {
-            scriptDoProjetil.danoCausado = dano; // Passa o dano para o projétil
+            // Calcula o dano final com o modificador
+            int danoFinal = Mathf.RoundToInt(dano * damageModifier);
+            scriptDoProjetil.danoCausado = danoFinal; // Passa o dano final para o projétil
         }
 
-        // Define o tempo do próximo ataque
         proximoAtaquePermitido = Time.time + tempoEntreAtaques;
+    }
+    
+    public void SetDamageModifier(float modifier)
+    {
+        this.damageModifier = modifier;
     }
 }

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(SpriteRenderer))] 
+[RequireComponent(typeof(SpriteRenderer))]
 public class ControladorCarrinho : MonoBehaviour
 {
     [Header("Configurações do Caminho")]
@@ -29,6 +29,12 @@ public class ControladorCarrinho : MonoBehaviour
     private float velocidadeAtual;
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
+    private PlayerStats stats;
+    private bool isMovingForward = true;
+    private float CurrentMaxSpeed
+    {
+        get { return velocidadeMaxima * (stats != null ? stats.cartSpeedMultiplier : 1f); }
+    }
 
     void Awake()
     {
@@ -38,6 +44,11 @@ public class ControladorCarrinho : MonoBehaviour
 
     void Start()
     {
+        stats = PlayerStats.Instance;
+        if (stats == null)
+        {
+            Debug.LogWarning("ControladorCarrinho não encontrou a instância de PlayerStats. Upgrades de velocidade não funcionarão.");
+        }
         if (waypoints.Length > 0)
         {
             transform.position = waypoints[0].position;
@@ -47,9 +58,31 @@ public class ControladorCarrinho : MonoBehaviour
     void Update()
     {
         GerenciarVelocidade();
-        AtualizarSpriteEgirarCollider(); // MODIFICADO: Agora faz as duas coisas.
+        AtualizarSpriteEgirarCollider();
+
+        if (Input.GetKeyDown(KeyCode.LeftShift) && stats != null)
+        {
+            stats.ActivateDash();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Q) && stats != null && stats.canChangeDirection && !stats.IsDirectionChangeOnCooldown)
+        {
+            isMovingForward = !isMovingForward;
+            Debug.Log("Direção do carrinho invertida!");
+            if (isMovingForward)
+            {
+                waypointAtualIndex = (waypointAtualIndex + 1) % waypoints.Length;
+            }
+            else
+            {
+                waypointAtualIndex--;
+                if (waypointAtualIndex < 0) { waypointAtualIndex = waypoints.Length - 1; }
+            }
+
+            stats.TriggerDirectionChangeCooldown();
+        }
     }
-    
+
     void FixedUpdate()
     {
         MoverCarrinho();
@@ -57,16 +90,21 @@ public class ControladorCarrinho : MonoBehaviour
 
     void GerenciarVelocidade()
     {
+        if (stats != null && stats.IsDashing)
+        {
+            velocidadeAtual = stats.dashSpeed;
+            return;
+        }
         if (Input.GetKey(KeyCode.Space))
         {
-            velocidadeAtual = Mathf.Lerp(velocidadeAtual, velocidadeMaxima, taxaAceleracao * Time.deltaTime);
+            velocidadeAtual = Mathf.Lerp(velocidadeAtual, CurrentMaxSpeed, taxaAceleracao * Time.deltaTime);
         }
         else
         {
             velocidadeAtual = Mathf.Lerp(velocidadeAtual, 0f, taxaFreio * Time.deltaTime);
         }
     }
-    
+
     void MoverCarrinho()
     {
         if (velocidadeAtual < 0.01f || waypoints.Length == 0)
@@ -74,17 +112,38 @@ public class ControladorCarrinho : MonoBehaviour
             rb.linearVelocity = Vector2.zero;
             return;
         }
-        
+
         Transform targetWaypoint = waypoints[waypointAtualIndex];
+
+        float distanceToTarget = Vector2.Distance(transform.position, targetWaypoint.position);
+
+        float travelDistanceThisFrame = velocidadeAtual * Time.fixedDeltaTime;
+
+        if (distanceToTarget < travelDistanceThisFrame)
+        {
+            Transform reachedWaypoint = targetWaypoint;
+            if (isMovingForward)
+            {
+                waypointAtualIndex = (waypointAtualIndex + 1) % waypoints.Length;
+            }
+            else
+            {
+                waypointAtualIndex--;
+                if (waypointAtualIndex < 0)
+                {
+                    waypointAtualIndex = waypoints.Length - 1;
+                }
+            }
+
+            targetWaypoint = waypoints[waypointAtualIndex];
+
+            transform.position = reachedWaypoint.position;
+        }
+
         Vector2 direcao = (targetWaypoint.position - transform.position).normalized;
         rb.linearVelocity = direcao * velocidadeAtual;
-
-        if (Vector2.Distance(transform.position, targetWaypoint.position) < 0.1f)
-        {
-            waypointAtualIndex = (waypointAtualIndex + 1) % waypoints.Length;
-        }
     }
-    
+
     void AtualizarSpriteEgirarCollider()
     {
         if (rb.linearVelocity.sqrMagnitude < 0.01f)
@@ -107,13 +166,14 @@ public class ControladorCarrinho : MonoBehaviour
         // Usa o ângulo com offset para escolher o sprite correto das 8 direções.
         float anguloFinal = (anguloBruto + anguloDeOffset + 360f) % 360f;
         int indexDoSprite = GetIndexPorAngulo(anguloFinal);
-        
+
         if (spriteRenderer.sprite != spritesDirecao[indexDoSprite])
         {
             spriteRenderer.sprite = spritesDirecao[indexDoSprite];
         }
         // ------------------------------------------------
     }
+
 
     private int GetIndexPorAngulo(float angulo)
     {

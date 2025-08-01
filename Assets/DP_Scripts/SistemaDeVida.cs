@@ -8,6 +8,7 @@ public class SistemaDeVida : MonoBehaviour
 
     // Variável privada para armazenar a vida atual.
     private int vidaAtual;
+    private float damageMultiplier = 1f; 
 
     // A propriedade 'get' permite que outros scripts leiam a vida atual,
     // mas o 'private set' impede que eles a modifiquem diretamente.
@@ -29,10 +30,11 @@ public class SistemaDeVida : MonoBehaviour
     public void ReceberDano(int quantidadeDeDano)
     {
         // Reduz a vida atual pela quantidade de dano recebido.
-        vidaAtual -= quantidadeDeDano;
+        int danoFinal = Mathf.RoundToInt(quantidadeDeDano * damageMultiplier);
+        vidaAtual -= danoFinal;
 
         // Imprime no console para sabermos que o dano foi recebido (ótimo para debugar).
-        Debug.Log(gameObject.name + " recebeu " + quantidadeDeDano + " de dano. Vida restante: " + vidaAtual);
+        Debug.Log(gameObject.name + " recebeu " + danoFinal + " de dano. Vida restante: " + vidaAtual);
 
         // --- AQUI VOCÊ PODE ADICIONAR FEEDBACK VISUAL/SONORO ---
         // Ex: Chamar uma função para piscar o sprite de vermelho, tocar um som de "hit", etc.
@@ -45,6 +47,11 @@ public class SistemaDeVida : MonoBehaviour
             vidaAtual = 0;
             Morrer();
         }
+    }
+
+    public void SetDamageMultiplier(float multiplier)
+    {
+        this.damageMultiplier = multiplier;
     }
 
     private void Morrer()

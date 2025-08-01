@@ -901,8 +901,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60de3edfbf762ca43bc4aec5d54be2a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseDamage: 25
-  baseFireRate: 0.3
+  baseDamage: 3
+  baseFireRate: 1
   baseProjectileSpeed: 20
   baseProjectileLifetime: 0.4
   baseProjectileSize: 1
@@ -912,13 +912,15 @@ MonoBehaviour:
   projectileSizeMultiplier: 1
   additionalProjectiles: 0
   spreadMultiplier: 1
+  pierceCount: 0
   hasExplosiveShot: 0
   hasPiercingShot: 0
-  pierceCount: 0
   hasSlowShot: 0
   hasSuperSlow: 0
   hasWeakenShot: 0
   hasWeakenAura: 0
+  hasDefenseDownShot: 0
+  canStackDefenseDown: 0
   maxSpread: 15
   spreadIncreaseRate: 20
   spreadRecoveryRate: 30
@@ -940,6 +942,16 @@ MonoBehaviour:
   weakenDuration: 4
   weakenAuraLifetime: 5
   weakenAuraSizeMultiplier: 1
+  defenseDownAmount: 0.1
+  defenseDownDuration: 5
+  defenseDownMaxStacks: 1
+  cartSpeedMultiplier: 1
+  canChangeDirection: 0
+  directionChangeCooldown: 2
+  isDashUnlocked: 0
+  dashSpeed: 40
+  dashDuration: 0.25
+  dashCooldown: 4
   weakenAuraPrefab: {fileID: 917485791310431008, guid: 87825b456cad8f14395a5ab01c503de1, type: 3}
 --- !u!4 &857719619
 Transform:

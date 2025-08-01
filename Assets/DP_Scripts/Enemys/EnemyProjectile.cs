@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Projetil : MonoBehaviour
+public class EnemyProjectile : MonoBehaviour
 {
     public float velocidade = 10f;
     public int danoCausado = 15; // O dano será definido pelo inimigo que atirou
@@ -17,13 +17,15 @@ public class Projetil : MonoBehaviour
     void OnTriggerEnter2D(Collider2D other)
     {
         // Tenta encontrar o sistema de vida no objeto atingido
+        // Supondo que você tenha um script "SistemaDeVida" no seu cristal/jogador
         SistemaDeVida vida = other.GetComponent<SistemaDeVida>();
-        if (vida != null && other.CompareTag("Crystal"))
+        if (vida != null && other.CompareTag("Crystal")) // Exemplo de verificação de tag
         {
             vida.ReceberDano(danoCausado);
         }
 
         // Destrói o projétil ao colidir com qualquer coisa que tenha um collider
+        // (que não seja um trigger, dependendo das suas camadas de física)
         Destroy(gameObject);
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 // Garante que o GameObject tenha os componentes necessários para o script funcionar.
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(SpriteRenderer))]
-public class InimigoIA : MonoBehaviour
+public class EnemyMovement : MonoBehaviour
 {
     [Header("Alvo")]
     [Tooltip("Arraste o GameObject do Cristal (ou qualquer outro alvo) para este campo.")]
@@ -18,6 +18,7 @@ public class InimigoIA : MonoBehaviour
     // --- Componentes e Variáveis Internas (Privadas) ---
     private Rigidbody2D rb;
     private SpriteRenderer meuSpriteRenderer;
+    private float speedModifier = 1f;
 
     // Variáveis do alvo que serão cacheadas para eficiência
     private Transform transformDoAlvo;
@@ -89,8 +90,8 @@ public class InimigoIA : MonoBehaviour
         // Calcula a direção normalizada para o alvo.
         Vector2 direcao = (transformDoAlvo.position - transform.position).normalized;
 
-        // Aplica a velocidade na direção calculada.
-        rb.linearVelocity = direcao * velocidade;
+        // MODIFIQUE ESTA LINHA para incluir o speedModifier
+        rb.linearVelocity = direcao * velocidade * speedModifier;
 
         // Gira o inimigo para que ele "olhe" para onde está indo.
         Girar(direcao);
@@ -125,5 +126,10 @@ public class InimigoIA : MonoBehaviour
             // Inimigo está acima do cristal -> aparece ATRÁS.
             meuSpriteRenderer.sortingOrder = spriteRendererDoAlvo.sortingOrder - 1;
         }
+    }
+
+    public void SetSpeedModifier(float newModifier)
+    {
+        this.speedModifier = newModifier;
     }
 }

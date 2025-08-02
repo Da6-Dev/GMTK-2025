@@ -219,7 +219,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -646193043
   m_SortingLayer: 2
-  m_SortingOrder: 1
+  m_SortingOrder: 0
   m_Sprite: {fileID: -6605429433916927779, guid: b0dc676f5b9c25545a3cddd80c6ee7e8, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -388,9 +388,9 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 1201572611
-  m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 4
   m_Sprite: {fileID: 21300000, guid: 20ffce1907a03bd40b388274c9ee4327, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -552,7 +552,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 8
+  orthographic size: 25
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -912,13 +912,15 @@ MonoBehaviour:
   projectileSizeMultiplier: 1
   additionalProjectiles: 0
   spreadMultiplier: 1
+  pierceCount: 0
   hasExplosiveShot: 0
   hasPiercingShot: 0
-  pierceCount: 0
   hasSlowShot: 0
   hasSuperSlow: 0
   hasWeakenShot: 0
   hasWeakenAura: 0
+  hasDefenseDownShot: 0
+  canStackDefenseDown: 0
   maxSpread: 15
   spreadIncreaseRate: 20
   spreadRecoveryRate: 30
@@ -940,6 +942,16 @@ MonoBehaviour:
   weakenDuration: 4
   weakenAuraLifetime: 5
   weakenAuraSizeMultiplier: 1
+  defenseDownAmount: 0.1
+  defenseDownDuration: 5
+  defenseDownMaxStacks: 1
+  cartSpeedMultiplier: 1
+  canChangeDirection: 0
+  directionChangeCooldown: 2
+  isDashUnlocked: 0
+  dashSpeed: 30
+  dashDuration: 0.15
+  dashCooldown: 4
   weakenAuraPrefab: {fileID: 917485791310431008, guid: 87825b456cad8f14395a5ab01c503de1, type: 3}
 --- !u!4 &857719619
 Transform:
@@ -1190,7 +1202,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 4
+  m_SortingOrder: 5
   m_Sprite: {fileID: 21300000, guid: 97bd40c68489eaf47bb969cc8641630c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1211,8 +1223,8 @@ Transform:
   m_GameObject: {fileID: 1536032138}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0.25, y: 0.89, z: 0}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}

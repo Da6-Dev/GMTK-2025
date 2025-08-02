@@ -30,7 +30,10 @@ public class EnemyMovement : MonoBehaviour
         // Pega os componentes do próprio inimigo e os armazena (caching).
         rb = GetComponent<Rigidbody2D>();
         meuSpriteRenderer = GetComponent<SpriteRenderer>();
+    }
 
+    void Start()
+    {
         // Valida e configura as referências do alvo para não ter que buscá-las toda hora.
         if (alvoObjeto != null)
         {

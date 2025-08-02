@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2643610133202231751}
   - component: {fileID: 5186445480455213871}
   - component: {fileID: 2767854861331599879}
+  - component: {fileID: 4081525261144162795}
   m_Layer: 11
   m_Name: CannonTower
   m_TagString: Tower
@@ -155,6 +156,21 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 100
+--- !u!114 &4081525261144162795
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1802573206165564911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff576cd2d70f7f6478b471a5e6652936, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nomeDaTorre: "Torre Canh\xE3o"
+  custoDeConstrucao: 15
+  descricao: "Essa torre ataca a Curta Dist\xE2ncia."
 --- !u!1 &8058873585993828330
 GameObject:
   m_ObjectHideFlags: 0

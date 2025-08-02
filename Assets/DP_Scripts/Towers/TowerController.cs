@@ -11,21 +11,19 @@ public class TowerController : MonoBehaviour
 
     [Header("Configurações Adicionais")]
     [Tooltip("A Layer onde os inimigos se encontram. Precisa ser configurado no Unity.")]
-    public LayerMask enemyLayer; // ADICIONE ESTA LINHA
+    public LayerMask enemyLayer;
 
     [Header("Referências")]
     public GameObject projectilePrefab;
-    // public Transform partToRotate; // REMOVA ou comente esta linha
     public Transform firePoint;
     [Tooltip("Array com 8 sprites. 0=Direita, e segue em sentido horário.")]
-    public Sprite[] directionSprites = new Sprite[8]; // ADICIONE esta linha
+    public Sprite[] directionSprites = new Sprite[8];
 
 
     private List<Transform> enemiesInRange = new List<Transform>();
     private Transform currentTarget;
     private float attackCooldown = 0f;
-    private SpriteRenderer spriteRenderer; // ADICIONE esta linha
-
+    private SpriteRenderer spriteRenderer;
     void Start()
     {
         // Pega o componente SpriteRenderer da própria torre
@@ -39,7 +37,6 @@ public class TowerController : MonoBehaviour
         GetComponent<CircleCollider2D>().radius = range;
     }
 
-    // ... (o método Update continua exatamente o mesmo) ...
     void Update()
     {
         // Limpa a lista de alvos que não existem mais
@@ -112,8 +109,6 @@ public class TowerController : MonoBehaviour
         }
     }
 
-
-    // --- MÉTODO AimAtTarget TOTALMENTE MODIFICADO ---
     private void AimAtTarget()
     {
         // Calcula a direção e o ângulo para o alvo
@@ -165,10 +160,8 @@ void OnTriggerEnter2D(Collider2D other)
     }
     private int GetIndexPorAngulo(float angulo)
     {
-        // Garante que o ângulo esteja entre 0 e 360
         if (angulo < 0) angulo += 360;
 
-        // Lógica para determinar o índice do sprite
         if (angulo >= 337.5 || angulo < 22.5) return 0; // Direita
         if (angulo >= 22.5 && angulo < 67.5) return 1;  // Cima-Direita
         if (angulo >= 67.5 && angulo < 112.5) return 2; // Cima

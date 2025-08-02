@@ -1,6 +1,5 @@
 using UnityEngine;
 
-// Permite criar instâncias deste objeto no menu de assets do Unity
 [CreateAssetMenu(fileName = "New Enemy Data", menuName = "Enemy Data")]
 public class EnemyData : ScriptableObject
 {
@@ -12,4 +11,7 @@ public class EnemyData : ScriptableObject
 
     [Tooltip("A partir de qual round este inimigo começa a aparecer.")]
     public int minRoundToSpawn = 1;
+
+    [Tooltip("A quantidade de dinheiro que este inimigo concede ao ser derrotado.")]
+    public int moneyOnDeath = 1;
 }

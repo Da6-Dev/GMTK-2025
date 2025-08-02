@@ -5,25 +5,39 @@ TagManager:
   serializedVersion: 3
   tags:
   - Enemy
+  - Tower
+  - Projectile
   - Crystal
+  - PickUp
+  - Obstacle
+  - Spawnpoint
+  - UICanvas
+  - AudioSource
+  - UpgradeZone
+  - DebuffZone
+  - AOE
+  - Cart
+  - Projectile-Enemy
+  - Interectable
+  - DeadBody
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Camera
   - Water
   - UI
-  - Minecart
+  - Background
+  - Objects Behind Player
+  - Track & Carrinho Base
   - Player
-  - Enemy
+  - Inimigos
+  - Torres
+  - "Proj\xE9teis"
+  - VFX/Particulas
+  - UI - World Space
+  - UI - Screen Space
   - Crystal
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
   - 
   - 
   - 
@@ -43,11 +57,38 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Minecart
+  - name: Background
     uniqueID: 1201572611
     locked: 0
-  - name: Player
+  - name: Objects Behind Players
     uniqueID: 3648774253
+    locked: 0
+  - name: Track & Carrinho Base
+    uniqueID: 1520383019
+    locked: 0
+  - name: Player
+    uniqueID: 1985967173
+    locked: 0
+  - name: Inimigos
+    uniqueID: 319789773
+    locked: 0
+  - name: Crystal
+    uniqueID: 4133786583
+    locked: 0
+  - name: Torres
+    uniqueID: 4130958373
+    locked: 0
+  - name: "Proj\xE9teis"
+    uniqueID: 2496889953
+    locked: 0
+  - name: "VFX / Part\xEDculas"
+    uniqueID: 1357277473
+    locked: 0
+  - name: UI - World Space
+    uniqueID: 787937159
+    locked: 0
+  - name: UI - Screen Space
+    uniqueID: 610533843
     locked: 0
   m_RenderingLayers:
   - Default

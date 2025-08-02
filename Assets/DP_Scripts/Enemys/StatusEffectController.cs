@@ -2,15 +2,9 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
-
-
-// Esta classe vai gerenciar todos os debuffs em um inimigo.
 public class StatusEffectController : MonoBehaviour
 {
-    // Uma lista de todos os efeitos de status ativos neste inimigo.
     private List<StatusEffect> activeEffects = new List<StatusEffect>();
-
-    // Referência para o script de movimento do inimigo, que será afetado.
     private EnemyMovement enemyMovement;
     private SistemaDeVida vida;
     private EnemyAttack enemyAttack;
@@ -30,20 +24,18 @@ public class StatusEffectController : MonoBehaviour
             if (activeEffects[i].duration <= 0)
             {
                 activeEffects.RemoveAt(i);
-                needsRecalculation = true; // Um efeito expirou, precisamos recalcular!
+                needsRecalculation = true;
             }
         }
 
         if (needsRecalculation)
         {
-            // Após a atualização, recalcula os modificadores.
             UpdateAllModifiers();
         }
     }
 
     public void ApplySlow(float amount, float duration, float damageMultiplier)
     {
-        // Remove qualquer efeito de lentidão antigo para evitar sobreposição estranha
         activeEffects.RemoveAll(e => e.type == EffectType.Slow);
 
         StatusEffect slowEffect = new StatusEffect
@@ -51,12 +43,10 @@ public class StatusEffectController : MonoBehaviour
             type = EffectType.Slow,
             magnitude = amount,
             duration = duration,
-            damageTakenMultiplier = damageMultiplier // Atribui o novo valor
+            damageTakenMultiplier = damageMultiplier
         };
         activeEffects.Add(slowEffect);
-        Debug.Log(gameObject.name + " está sob efeito de lentidão. Multiplicador de dano: " + damageMultiplier);
 
-        // Aplica os efeitos imediatamente
         UpdateAllModifiers();
     }
 
@@ -67,13 +57,12 @@ public class StatusEffectController : MonoBehaviour
         StatusEffect weakenEffect = new StatusEffect
         {
             type = EffectType.Weaken,
-            magnitude = amount, // ex: 0.25 para 25% de redução
+            magnitude = amount,
             duration = duration
         };
         activeEffects.Add(weakenEffect);
-        Debug.Log(gameObject.name + " está enfraquecido, causando dano reduzido.");
 
-        UpdateAllModifiers(); // Atualiza imediatamente
+        UpdateAllModifiers();
     }
 
     public void ApplyDefenseDown(float amount, float duration, int maxStacks)
@@ -89,7 +78,6 @@ public class StatusEffectController : MonoBehaviour
                 magnitude = amount,
                 duration = duration
             });
-            Debug.Log($"Defesa reduzida! Acúmulos: {defenseDownEffects.Count + 1}/{maxStacks}");
         }
         else
         {
@@ -98,7 +86,6 @@ public class StatusEffectController : MonoBehaviour
             if (oldestStack != null)
             {
                 oldestStack.duration = duration;
-                Debug.Log($"Defesa reduzida! Duração renovada. Acúmulos: {maxStacks}/{maxStacks}");
             }
         }
 
@@ -137,7 +124,7 @@ public class StatusEffectController : MonoBehaviour
             var defenseDownEffects = activeEffects.Where(e => e.type == EffectType.DefenseDown);
             if (defenseDownEffects.Any())
             {
-                // Somamos o bônus de todos os stacks de defesa reduzida
+                // Soma o bônus de todos os stacks de defesa reduzida
                 finalMultiplier += defenseDownEffects.Sum(e => e.magnitude);
             }
 
@@ -161,16 +148,14 @@ public class StatusEffectController : MonoBehaviour
     }
 }
 
-// Uma classe simples para definir um efeito de status.
 public class StatusEffect
 {
     public EffectType type;
     public float magnitude;
     public float duration;
-    public float damageTakenMultiplier = 1f; // ADICIONE ESTA LINHA
+    public float damageTakenMultiplier = 1f;
 }
 
-// Um enum para identificar os tipos de efeito.
 public enum EffectType
 {
     Slow,

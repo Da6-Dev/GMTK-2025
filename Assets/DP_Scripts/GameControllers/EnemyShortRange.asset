@@ -15,3 +15,4 @@ MonoBehaviour:
   enemyPrefab: {fileID: 7790965098609737863, guid: b10a45d3eec94774e9d3dd7c448f5645, type: 3}
   threatCost: 2
   minRoundToSpawn: 3
+  moneyOnDeath: 2

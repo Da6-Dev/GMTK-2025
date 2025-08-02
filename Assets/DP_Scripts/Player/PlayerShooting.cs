@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerShooting : MonoBehaviour // NOME DA CLASSE MUDOU
+public class PlayerShooting : MonoBehaviour
 {
     [Header("Referências")]
     [Tooltip("Array com 8 sprites para a mira. 0=Direita, e segue em sentido horário.")]
@@ -9,18 +9,12 @@ public class PlayerShooting : MonoBehaviour // NOME DA CLASSE MUDOU
     public GameObject projetilPrefab;
     [Tooltip("O ponto de origem de onde os projéteis são disparados.")]
     public Transform pontoDeTiro;
-
-    // --- VARIÁVEIS DE STATS REMOVIDAS DAQUI ---
-    // O intervaloDeTiro, dispersaoMaxima, etc., foram removidos.
-    // Agora eles serão lidos do PlayerStats.
-
     private SpriteRenderer spriteRenderer;
     private Camera mainCamera;
     private float angulo;
     private float proximoTiro;
     private float dispersaoAtual;
 
-    // NOVO: Referência para o nosso script de stats
     private PlayerStats stats;
 
     void Start()
@@ -28,7 +22,6 @@ public class PlayerShooting : MonoBehaviour // NOME DA CLASSE MUDOU
         spriteRenderer = GetComponent<SpriteRenderer>();
         mainCamera = Camera.main;
 
-        // NOVO: Pegamos a instância do PlayerStats no início.
         stats = PlayerStats.Instance;
         if (stats == null)
         {
@@ -42,8 +35,7 @@ public class PlayerShooting : MonoBehaviour // NOME DA CLASSE MUDOU
         HandleAim();
         HandleShooting();
 
-        // NOVO: Verifica se a tecla para ativar o Overclock foi pressionada
-        if (Input.GetKeyDown(KeyCode.R)) // Usando a tecla R como exemplo
+        if (Input.GetKeyDown(KeyCode.R))
         {
             stats.ActivateOverclock();
         }
@@ -62,7 +54,6 @@ public class PlayerShooting : MonoBehaviour // NOME DA CLASSE MUDOU
     {
         if (Input.GetMouseButton(0))
         {
-            // MODIFICADO: Multiplicamos pelo spreadMultiplier para reduzir a dispersão com o upgrade.
             float maxSpreadFinal = stats.maxSpread * stats.spreadMultiplier;
             float increaseRateFinal = stats.spreadIncreaseRate * stats.spreadMultiplier;
 
@@ -112,7 +103,6 @@ public class PlayerShooting : MonoBehaviour // NOME DA CLASSE MUDOU
 
             if (projController != null)
             {
-                // O Initialize agora precisa do pierceCount
                 projController.Initialize(
                     stats.CurrentDamage,
                     stats.baseProjectileSpeed,

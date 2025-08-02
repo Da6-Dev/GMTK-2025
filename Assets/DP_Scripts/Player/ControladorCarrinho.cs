@@ -8,21 +8,19 @@ public class ControladorCarrinho : MonoBehaviour
     [Tooltip("A sequência de pontos (waypoints) que o carrinho deve seguir em ordem.")]
     public Transform[] waypoints;
 
+    [Header("Economia")]
+    [Tooltip("A quantidade de dinheiro ganha a cada volta completa.")]
+    public int dinheiroPorVolta = 10;
+
     [Header("Controles de Movimento")]
-    [Tooltip("A velocidade máxima que o carrinho pode atingir.")]
     public float velocidadeMaxima = 8f;
-    [Tooltip("A rapidez com que o carrinho acelera ao pressionar a tecla.")]
     public float taxaAceleracao = 2f;
-    [Tooltip("A rapidez com que o carrinho para ao soltar a tecla.")]
     public float taxaFreio = 5f;
 
     [Header("Gráficos e Colisão")]
-    [Tooltip("Array com 8 sprites para as direções. ORDEM: 0: Direita, 1: Cima-Direita, 2: Cima, etc.")]
     public Sprite[] spritesDirecao = new Sprite[8];
-    [Tooltip("Um ajuste fino para o ângulo do sprite, caso a arte original não esteja alinhada para a direita.")]
     public float anguloDeOffset = 0f;
-    [Tooltip("Arraste o objeto-filho que contém o BoxCollider2D para este campo.")]
-    public Transform transformDoCollider; // ADICIONADO: Referência para o Transform do objeto-filho que tem o collider.
+    public Transform transformDoCollider;
 
     // Variáveis de controle interno
     private int waypointAtualIndex = 0;
@@ -31,6 +29,12 @@ public class ControladorCarrinho : MonoBehaviour
     private Rigidbody2D rb;
     private PlayerStats stats;
     private bool isMovingForward = true;
+
+    // Variáveis de controle de voltas
+    private int ultimoWaypointAlcancado = 0;
+    private int waypointDeInicioDaVolta;
+    public int VoltasCompletas { get; private set; }
+
     private float CurrentMaxSpeed
     {
         get { return velocidadeMaxima * (stats != null ? stats.cartSpeedMultiplier : 1f); }
@@ -47,12 +51,16 @@ public class ControladorCarrinho : MonoBehaviour
         stats = PlayerStats.Instance;
         if (stats == null)
         {
-            Debug.LogWarning("ControladorCarrinho não encontrou a instância de PlayerStats. Upgrades de velocidade não funcionarão.");
+            Debug.LogWarning("ControladorCarrinho não encontrou a instância de PlayerStats.");
         }
         if (waypoints.Length > 0)
         {
             transform.position = waypoints[0].position;
+            waypointAtualIndex = 0; // Começa no primeiro waypoint
+            ultimoWaypointAlcancado = 0; // Define o último ponto alcançado como o inicial
+            waypointDeInicioDaVolta = 0; // A primeira volta sempre começa no waypoint 0.
         }
+        VoltasCompletas = 0;
     }
 
     void Update()
@@ -68,7 +76,47 @@ public class ControladorCarrinho : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Q) && stats != null && stats.canChangeDirection && !stats.IsDirectionChangeOnCooldown)
         {
             isMovingForward = !isMovingForward;
-            Debug.Log("Direção do carrinho invertida!");
+
+            int proximoWaypoint;
+            if (isMovingForward)
+            {
+                proximoWaypoint = (waypointAtualIndex + 1) % waypoints.Length;
+            }
+            else
+            {
+                proximoWaypoint = waypointAtualIndex - 1;
+                if (proximoWaypoint < 0) { proximoWaypoint = waypoints.Length - 1; }
+            }
+
+            waypointDeInicioDaVolta = proximoWaypoint;
+
+            stats.TriggerDirectionChangeCooldown();
+        }
+    }
+
+    void FixedUpdate()
+    {
+        MoverCarrinho();
+    }
+
+    void MoverCarrinho()
+    {
+        if (velocidadeAtual < 0.01f || waypoints.Length == 0)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
+        Transform targetWaypoint = waypoints[waypointAtualIndex];
+        float distanceToTarget = Vector2.Distance(transform.position, targetWaypoint.position);
+        float travelDistanceThisFrame = velocidadeAtual * Time.fixedDeltaTime;
+
+        if (distanceToTarget <= travelDistanceThisFrame)
+        {
+            DetectarVoltaCompleta(waypointAtualIndex, ultimoWaypointAlcancado);
+
+            ultimoWaypointAlcancado = waypointAtualIndex;
+            
             if (isMovingForward)
             {
                 waypointAtualIndex = (waypointAtualIndex + 1) % waypoints.Length;
@@ -79,14 +127,22 @@ public class ControladorCarrinho : MonoBehaviour
                 if (waypointAtualIndex < 0) { waypointAtualIndex = waypoints.Length - 1; }
             }
 
-            stats.TriggerDirectionChangeCooldown();
+            transform.position = targetWaypoint.position;
+        }
+
+        Vector2 direcao = (targetWaypoint.position - transform.position).normalized;
+        rb.linearVelocity = direcao * velocidadeAtual;
+    }
+
+    void DetectarVoltaCompleta(int pontoDeChegada, int pontoDeOrigem)
+    {
+        if (pontoDeChegada == waypointDeInicioDaVolta && pontoDeChegada != pontoDeOrigem)
+        {
+            VoltasCompletas++;
+            EconomyManager.Instance.AdicionarDinheiro(dinheiroPorVolta);
         }
     }
 
-    void FixedUpdate()
-    {
-        MoverCarrinho();
-    }
 
     void GerenciarVelocidade()
     {
@@ -104,89 +160,28 @@ public class ControladorCarrinho : MonoBehaviour
             velocidadeAtual = Mathf.Lerp(velocidadeAtual, 0f, taxaFreio * Time.deltaTime);
         }
     }
-
-    void MoverCarrinho()
-    {
-        if (velocidadeAtual < 0.01f || waypoints.Length == 0)
-        {
-            rb.linearVelocity = Vector2.zero;
-            return;
-        }
-
-        Transform targetWaypoint = waypoints[waypointAtualIndex];
-
-        float distanceToTarget = Vector2.Distance(transform.position, targetWaypoint.position);
-
-        float travelDistanceThisFrame = velocidadeAtual * Time.fixedDeltaTime;
-
-        if (distanceToTarget < travelDistanceThisFrame)
-        {
-            Transform reachedWaypoint = targetWaypoint;
-            if (isMovingForward)
-            {
-                waypointAtualIndex = (waypointAtualIndex + 1) % waypoints.Length;
-            }
-            else
-            {
-                waypointAtualIndex--;
-                if (waypointAtualIndex < 0)
-                {
-                    waypointAtualIndex = waypoints.Length - 1;
-                }
-            }
-
-            targetWaypoint = waypoints[waypointAtualIndex];
-
-            transform.position = reachedWaypoint.position;
-        }
-
-        Vector2 direcao = (targetWaypoint.position - transform.position).normalized;
-        rb.linearVelocity = direcao * velocidadeAtual;
-    }
-
+    
     void AtualizarSpriteEgirarCollider()
     {
-        if (rb.linearVelocity.sqrMagnitude < 0.01f)
-        {
-            return;
-        }
-
+        if (rb.linearVelocity.sqrMagnitude < 0.01f) return;
         Vector2 direcao = rb.linearVelocity.normalized;
         float anguloBruto = Mathf.Atan2(direcao.y, direcao.x) * Mathf.Rad2Deg;
-
-        // --- ROTAÇÃO DO COLLIDER ---
-        // Gira o Transform do objeto-filho para alinhar o colisor com a direção real do movimento.
-        if (transformDoCollider != null)
-        {
-            transformDoCollider.rotation = Quaternion.Euler(0f, 0f, anguloBruto);
-        }
-        // ---------------------------
-
-        // --- TROCA DO SPRITE (Lógica original mantida) ---
-        // Usa o ângulo com offset para escolher o sprite correto das 8 direções.
+        if (transformDoCollider != null) transformDoCollider.rotation = Quaternion.Euler(0f, 0f, anguloBruto);
         float anguloFinal = (anguloBruto + anguloDeOffset + 360f) % 360f;
         int indexDoSprite = GetIndexPorAngulo(anguloFinal);
-
-        if (spriteRenderer.sprite != spritesDirecao[indexDoSprite])
-        {
-            spriteRenderer.sprite = spritesDirecao[indexDoSprite];
-        }
-        // ------------------------------------------------
+        if (spriteRenderer.sprite != spritesDirecao[indexDoSprite]) spriteRenderer.sprite = spritesDirecao[indexDoSprite];
     }
-
-
+    
     private int GetIndexPorAngulo(float angulo)
     {
-        // Esta função volta a ser usada normalmente.
-        if (angulo >= 337.5 || angulo < 22.5) return 0; // Direita
-        if (angulo >= 22.5 && angulo < 67.5) return 1;  // Cima-Direita
-        if (angulo >= 67.5 && angulo < 112.5) return 2; // Cima
-        if (angulo >= 112.5 && angulo < 157.5) return 3; // Cima-Esquerda
-        if (angulo >= 157.5 && angulo < 202.5) return 4; // Esquerda
-        if (angulo >= 202.5 && angulo < 247.5) return 5; // Baixo-Esquerda
-        if (angulo >= 247.5 && angulo < 292.5) return 6; // Baixo
-        if (angulo >= 292.5 && angulo < 337.5) return 7; // Baixo-Direita
-
+        if (angulo >= 337.5 || angulo < 22.5) return 0;
+        if (angulo >= 22.5 && angulo < 67.5) return 1;
+        if (angulo >= 67.5 && angulo < 112.5) return 2;
+        if (angulo >= 112.5 && angulo < 157.5) return 3;
+        if (angulo >= 157.5 && angulo < 202.5) return 4;
+        if (angulo >= 202.5 && angulo < 247.5) return 5;
+        if (angulo >= 247.5 && angulo < 292.5) return 6;
+        if (angulo >= 292.5 && angulo < 337.5) return 7;
         return 0;
     }
 }

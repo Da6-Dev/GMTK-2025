@@ -8,6 +8,7 @@ public class BuildManager : MonoBehaviour
 
     [Header("Referências da UI")]
     public GameObject buildMenuUI;
+    public GameObject blockerFundo;
     public GameObject towerButtonPrefab;
     public Transform buttonContainer;
 
@@ -50,9 +51,8 @@ public class BuildManager : MonoBehaviour
 
         if (buildMenuUI != null)
         {
-            // Apenas ativa o menu. Ele aparecerá na posição em que
-            // você o deixou no Editor. A linha de posição foi removida.
             buildMenuUI.SetActive(true);
+            blockerFundo.SetActive(true);
         }
     }
 
@@ -67,6 +67,7 @@ public class BuildManager : MonoBehaviour
         if (buildMenuUI != null)
         {
             buildMenuUI.SetActive(false);
+            blockerFundo.SetActive(false);
         }
     }
 
@@ -74,42 +75,50 @@ public class BuildManager : MonoBehaviour
     {
         if (selectedSlot == null)
         {
+            Debug.LogError("Nenhum slot selecionado para construir!");
             return;
         }
-        
-        selectedSlot.BuildTowerOnSlot(towerPrefab);
-        Debug.Log("Torre " + towerPrefab.name + " construída!");
-        
-        CloseBuildMenu();
+
+        TowerData towerData = towerPrefab.GetComponent<TowerData>();
+        if (towerData == null)
+        {
+            Debug.LogError("O prefab da torre '" + towerPrefab.name + "' não possui o componente TowerData! Não é possível verificar o custo.");
+            return;
+        }
+
+        bool transacaoBemSucedida = EconomyManager.Instance.GastarDinheiro(towerData.custoDeConstrucao);
+
+        if (transacaoBemSucedida)
+        {
+            selectedSlot.BuildTowerOnSlot(towerPrefab);
+            CloseBuildMenu();
+        }
+        else
+        {
+        }
     }
 
     void PopulateBuildMenu()
     {
-        // Limpa botões antigos para evitar duplicatas.
         foreach (Transform child in buttonContainer)
         {
             Destroy(child.gameObject);
         }
 
-        // Cria os botões.
         foreach (GameObject towerPrefab in availableTowers)
         {
             GameObject buttonGO = Instantiate(towerButtonPrefab, buttonContainer);
-            Image buttonImage = buttonGO.GetComponent<Image>();
-            if (buttonImage != null)
+
+            TowerButtonUI towerButton = buttonGO.GetComponent<TowerButtonUI>();
+            if (towerButton != null)
             {
-                buttonImage.sprite = towerPrefab.GetComponent<SpriteRenderer>().sprite;
+                towerButton.Setup(towerPrefab, this);
             }
-            Button button = buttonGO.GetComponent<Button>();
-            if (button != null)
+            else
             {
-                button.onClick.AddListener(() => {
-                    BuildTower(towerPrefab);
-                });
+                Debug.LogError("O prefab do botão de torre não possui o script TowerButtonUI!");
             }
         }
-
-        // Força o container a recalcular o layout (IMPORTANTE para os botões aparecerem).
         LayoutRebuilder.ForceRebuildLayoutImmediate(buttonContainer as RectTransform);
     }
 }

@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 916602538878059048, guid: b10a45d3eec94774e9d3dd7c448f5645, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.x
+      value: 0.90625
+      objectReference: {fileID: 0}
     - target: {fileID: 1601665364294689866, guid: b10a45d3eec94774e9d3dd7c448f5645, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2.44
@@ -52,6 +56,10 @@ PrefabInstance:
       propertyPath: vidaMaxima
       value: 120
       objectReference: {fileID: 0}
+    - target: {fileID: 3324372698769756181, guid: b10a45d3eec94774e9d3dd7c448f5645, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 1647750780659882281, guid: 227588208a80e9d4186693dcf74c1e17, type: 3}
     - target: {fileID: 3676952260194093824, guid: b10a45d3eec94774e9d3dd7c448f5645, type: 3}
       propertyPath: dano
       value: 40
@@ -68,6 +76,10 @@ PrefabInstance:
       propertyPath: distanciaParaParar
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: 6696829458844852437, guid: b10a45d3eec94774e9d3dd7c448f5645, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: c8c12ccd9d7095f42b84c3cf7bb1e542, type: 2}
     - target: {fileID: 7790965098609737863, guid: b10a45d3eec94774e9d3dd7c448f5645, type: 3}
       propertyPath: m_Name
       value: Enemy Ranged Longo Variant

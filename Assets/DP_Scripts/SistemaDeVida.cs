@@ -2,13 +2,13 @@ using UnityEngine;
 
 public class SistemaDeVida : MonoBehaviour
 {
-    [Header("Configura√ß√µes de Vida")]
-    [Tooltip("A quantidade m√°xima de vida que este objeto pode ter.")]
+    [Header("ConfiguraÁıes de Vida")]
+    [Tooltip("A quantidade m·xima de vida que este objeto pode ter.")]
     public int vidaMaxima = 100;
 
-    // Vari√°vel privada para armazenar a vida atual.
+    // Vari·vel privada para armazenar a vida atual.
     private int vidaAtual;
-    private float damageMultiplier = 1f; 
+    private float damageMultiplier = 1f;
 
     // A propriedade 'get' permite que outros scripts leiam a vida atual,
     // mas o 'private set' impede que eles a modifiquem diretamente.
@@ -18,32 +18,32 @@ public class SistemaDeVida : MonoBehaviour
         private set { vidaAtual = value; }
     }
 
-    // Start √© chamado antes do primeiro frame.
+    // Start È chamado antes do primeiro frame.
     void Start()
     {
-        // Ao iniciar, a vida atual √© definida como a vida m√°xima.
+        // Ao iniciar, a vida atual È definida como a vida m·xima.
         vidaAtual = vidaMaxima;
     }
 
-    // --- Fun√ß√£o P√∫blica para Causar Dano ---
-    // Outros scripts (como o do proj√©til) chamar√£o esta fun√ß√£o.
+    // --- FunÁ„o P˙blica para Causar Dano ---
+    // Outros scripts (como o do projÈtil) chamar„o esta funÁ„o.
     public void ReceberDano(int quantidadeDeDano)
     {
         // Reduz a vida atual pela quantidade de dano recebido.
         int danoFinal = Mathf.RoundToInt(quantidadeDeDano * damageMultiplier);
         vidaAtual -= danoFinal;
 
-        // Imprime no console para sabermos que o dano foi recebido (√≥timo para debugar).
+        // Imprime no console para sabermos que o dano foi recebido (Ûtimo para debugar).
         Debug.Log(gameObject.name + " recebeu " + danoFinal + " de dano. Vida restante: " + vidaAtual);
 
-        // --- AQUI VOC√ä PODE ADICIONAR FEEDBACK VISUAL/SONORO ---
-        // Ex: Chamar uma fun√ß√£o para piscar o sprite de vermelho, tocar um som de "hit", etc.
+        // --- AQUI VOC  PODE ADICIONAR FEEDBACK VISUAL/SONORO ---
+        // Ex: Chamar uma funÁ„o para piscar o sprite de vermelho, tocar um som de "hit", etc.
         // StartCoroutine(PiscarFeedbackDeDano());
 
         // Verifica se a vida chegou a zero ou menos.
         if (vidaAtual <= 0)
         {
-            // Garante que a vida n√£o fique negativa no display.
+            // Garante que a vida n„o fique negativa no display.
             vidaAtual = 0;
             Morrer();
         }
@@ -59,11 +59,11 @@ public class SistemaDeVida : MonoBehaviour
         // Imprime no console que o objeto morreu.
         Debug.Log(gameObject.name + " morreu!");
 
-        // --- AQUI VOC√ä ADICIONA AS CONSEQU√äNCIAS DA MORTE ---
-        // Ex: Tocar uma anima√ß√£o de explos√£o, dropar itens, adicionar pontos ao jogador, etc.
+        // --- AQUI VOC  ADICIONA AS CONSEQU NCIAS DA MORTE ---
+        // Ex: Tocar uma animaÁ„o de explos„o, dropar itens, adicionar pontos ao jogador, etc.
         // Instantiate(efeitoDeExplosao, transform.position, Quaternion.identity);
 
-        // A a√ß√£o mais simples √© destruir o GameObject.
+        // A aÁ„o mais simples È destruir o GameObject.
         Destroy(gameObject);
     }
 }

@@ -7,7 +7,8 @@ public class TowerController : MonoBehaviour
     [Header("Atributos da Torre")]
     public float range = 15f;
     public float timeBetweenAttacks = 1f;
-    public int damage = 20;
+    public TowerData towerData; // Referência ao scriptable object com os dados da torre
+    public int damage = 5; // Dano da torre, pode ser ajustado no TowerData
 
     [Header("Configurações Adicionais")]
     [Tooltip("A Layer onde os inimigos se encontram. Precisa ser configurado no Unity.")]
@@ -26,6 +27,16 @@ public class TowerController : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     void Start()
     {
+        towerData = GetComponent<TowerData>();
+        if (towerData != null)
+        {
+            damage = towerData.danoAtual;
+        }
+        else
+        {
+            Debug.LogError("TowerData não está configurado no prefab da torre!");
+            this.enabled = false; // Desabilita o script se TowerData não estiver configurado
+        }
         // Pega o componente SpriteRenderer da própria torre
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer == null)

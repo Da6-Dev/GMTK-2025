@@ -20,6 +20,9 @@ public class EnemyMovement : MonoBehaviour
     private SpriteRenderer spriteRendererDoAlvo;
     private Animator animator;
 
+    [HideInInspector]
+    public bool podeMover = true; // Flag pública para controlar o movimento
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>(); 
@@ -54,6 +57,12 @@ public class EnemyMovement : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (!podeMover)
+        {
+            PararMovimento();
+            return;
+        }
+
         if (transformDoAlvo == null)
         {
             PararMovimento();

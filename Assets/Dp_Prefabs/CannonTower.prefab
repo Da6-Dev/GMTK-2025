@@ -78,7 +78,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -164008923
-  m_SortingLayer: 7
+  m_SortingLayer: 8
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 93641741d0cd50a4eb1dcbd400406c77, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -169,8 +169,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nomeDaTorre: "Torre Canh\xE3o"
-  custoDeConstrucao: 15
+  custoDeConstrucao: 25
   descricao: "Essa torre ataca a Curta Dist\xE2ncia."
+  danoAtual: 20
+  danoUpgrade: 40
+  custoUpgrade: 10
+  nivel: 1
+  icon: {fileID: 5152299564003981250, guid: 369f7631fc0c1094594c0755779f50ac, type: 3}
 --- !u!1 &8058873585993828330
 GameObject:
   m_ObjectHideFlags: 0

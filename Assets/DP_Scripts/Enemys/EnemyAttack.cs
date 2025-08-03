@@ -22,10 +22,12 @@ public class EnemyAttack : MonoBehaviour
     private EnemyMovement ia;
     private float proximoAtaquePermitido = 0f;
     private float damageModifier = 1f;
+    private Animator animator;
 
     void Awake()
     {
         ia = GetComponent<EnemyMovement>();
+        animator = GetComponent<Animator>();
     }
 
     void Update()
@@ -57,6 +59,8 @@ public class EnemyAttack : MonoBehaviour
 
     private void AtacarCorpoACorpo(SistemaDeVida alvo)
     {
+        animator.SetTrigger("Attack");
+
         int danoFinal = Mathf.RoundToInt(dano * damageModifier);
 
         alvo.ReceberDano(danoFinal);
@@ -66,6 +70,8 @@ public class EnemyAttack : MonoBehaviour
 
     private void AtacarADistancia()
     {
+        animator.SetTrigger("Attack");
+
         if (prefabDoProjetil == null || pontoDeDisparo == null)
         {
             Debug.LogError("Inimigo ranged " + gameObject.name + " não tem prefab de projétil ou ponto de disparo configurado!");

@@ -60,6 +60,9 @@ TagManager:
   - name: Background
     uniqueID: 1201572611
     locked: 0
+  - name: World
+    uniqueID: 2555545479
+    locked: 0
   - name: Objects Behind Players
     uniqueID: 3648774253
     locked: 0

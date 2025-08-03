@@ -11,10 +11,19 @@ public class SistemaDeVida : MonoBehaviour
     private int vidaAtual;
     private float damageMultiplier = 1f; 
 
+    private Animator animator;
+    private bool estaMorto = false;
+    public float tempoAnimacaoMorte = 1f;
+
     public int VidaAtual
     {
         get { return vidaAtual; }
         private set { vidaAtual = value; }
+    }
+
+    void Awake()
+    {
+        animator = GetComponent<Animator>(); // Pega o Animator
     }
 
     void Start()
@@ -24,6 +33,8 @@ public class SistemaDeVida : MonoBehaviour
 
     public void ReceberDano(int quantidadeDeDano)
     {
+        if (estaMorto) return;
+
         int danoFinal = Mathf.RoundToInt(quantidadeDeDano * damageMultiplier);
         vidaAtual -= danoFinal;
 
@@ -41,12 +52,22 @@ public class SistemaDeVida : MonoBehaviour
 
     private void Morrer()
     {
+        estaMorto = true;
+        vidaAtual = 0;
+
+        // Aciona a animação de morte
+        animator.SetTrigger("Die");
+
+        GetComponent<Rigidbody2D>().simulated = false;
+        GetComponent<EnemyMovement>().enabled = false;
+        GetComponent<EnemyAttack>().enabled = false;
+        GetComponent<Collider2D>().enabled = false;
 
         if (recompensaPorMorte > 0)
         {
             EconomyManager.Instance.AdicionarDinheiro(recompensaPorMorte);
         }
 
-        Destroy(gameObject);
+        Destroy(gameObject, tempoAnimacaoMorte);
     }
 }

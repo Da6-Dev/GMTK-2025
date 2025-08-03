@@ -116,7 +116,7 @@ public class ControladorCarrinho : MonoBehaviour
             DetectarVoltaCompleta(waypointAtualIndex, ultimoWaypointAlcancado);
 
             ultimoWaypointAlcancado = waypointAtualIndex;
-            
+
             if (isMovingForward)
             {
                 waypointAtualIndex = (waypointAtualIndex + 1) % waypoints.Length;
@@ -160,7 +160,7 @@ public class ControladorCarrinho : MonoBehaviour
             velocidadeAtual = Mathf.Lerp(velocidadeAtual, 0f, taxaFreio * Time.deltaTime);
         }
     }
-    
+
     void AtualizarSpriteEgirarCollider()
     {
         if (rb.linearVelocity.sqrMagnitude < 0.01f) return;
@@ -171,7 +171,7 @@ public class ControladorCarrinho : MonoBehaviour
         int indexDoSprite = GetIndexPorAngulo(anguloFinal);
         if (spriteRenderer.sprite != spritesDirecao[indexDoSprite]) spriteRenderer.sprite = spritesDirecao[indexDoSprite];
     }
-    
+
     private int GetIndexPorAngulo(float angulo)
     {
         if (angulo >= 337.5 || angulo < 22.5) return 0;

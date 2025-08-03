@@ -12,18 +12,19 @@ public class EnemyMovement : MonoBehaviour
     [Tooltip("A velocidade de movimento do inimigo.")]
     public float velocidade = 2.5f;
     [Tooltip("A que distância do alvo o inimigo deve parar de se mover.")]
-    public float distanciaParaParar = 1f;
-
+    public float distanciaParaParar = 1f; 
     private Rigidbody2D rb;
     private SpriteRenderer meuSpriteRenderer;
     private float speedModifier = 1f;
     private Transform transformDoAlvo;
     private SpriteRenderer spriteRendererDoAlvo;
+    private Animator animator;
 
     void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
-        meuSpriteRenderer = GetComponent<SpriteRenderer>();
+        rb = GetComponent<Rigidbody2D>(); 
+        meuSpriteRenderer = GetComponent<SpriteRenderer>(); 
+        animator = GetComponent<Animator>();
     }
 
     void Start()
@@ -73,30 +74,32 @@ public class EnemyMovement : MonoBehaviour
 
     private void MoverEmDirecaoAoAlvo()
     {
+        animator.SetFloat("Speed", 1f);
+
         Vector2 direcao = (transformDoAlvo.position - transform.position).normalized;
 
         rb.linearVelocity = direcao * velocidade * speedModifier;
 
-        Girar(direcao);
+        if (direcao.x > 0.01f)
+        {
+            meuSpriteRenderer.flipX = false;
+        }
+        else if (direcao.x < -0.01f)
+        {
+            meuSpriteRenderer.flipX = true;
+        }
     }
 
     private void PararMovimento()
     {
-        rb.linearVelocity = Vector2.zero;
-    }
-
-    private void Girar(Vector2 direcao)
-    {
-        float angulo = Mathf.Atan2(direcao.y, direcao.x) * Mathf.Rad2Deg;
-
-        rb.rotation = angulo - 90f;
+        animator.SetFloat("Speed", 0f);
+        rb.linearVelocity = Vector2.zero; 
     }
 
     private void AtualizarOrdemDoSprite()
     {
         if (transform.position.y < transformDoAlvo.position.y)
         {
-
             meuSpriteRenderer.sortingOrder = spriteRendererDoAlvo.sortingOrder + 1;
         }
         else

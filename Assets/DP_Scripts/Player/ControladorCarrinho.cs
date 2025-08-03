@@ -22,6 +22,10 @@ public class ControladorCarrinho : MonoBehaviour
     public float anguloDeOffset = 0f;
     public Transform transformDoCollider;
 
+    [Header("Áudio")]
+    public AudioClip somMovimento;
+    private AudioSource audioSource;
+
     // Variáveis de controle interno
     private int waypointAtualIndex = 0;
     private float velocidadeAtual;
@@ -44,6 +48,7 @@ public class ControladorCarrinho : MonoBehaviour
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
+        audioSource = gameObject.AddComponent<AudioSource>();
     }
 
     void Start()
@@ -104,6 +109,12 @@ public class ControladorCarrinho : MonoBehaviour
         if (velocidadeAtual < 0.01f || waypoints.Length == 0)
         {
             rb.linearVelocity = Vector2.zero;
+
+            // Para o som se estiver tocando
+            if (audioSource.isPlaying)
+            {
+                audioSource.Stop();
+            }
             return;
         }
 
@@ -132,6 +143,34 @@ public class ControladorCarrinho : MonoBehaviour
 
         Vector2 direcao = (targetWaypoint.position - transform.position).normalized;
         rb.linearVelocity = direcao * velocidadeAtual;
+
+        // Reproduzir som de movimento
+        if (somMovimento != null)
+        {
+            // Ajusta o volume do som de acordo com a velocidade
+            float velocidadePercentual = Mathf.Clamp01(velocidadeAtual / CurrentMaxSpeed);
+
+            if (velocidadeAtual > 0.1f)
+            {
+                if (!audioSource.isPlaying)
+                {
+                    audioSource.clip = somMovimento;
+                    audioSource.loop = true;
+                    audioSource.Play();
+                }
+                audioSource.volume = velocidadePercentual; // volume proporcional à velocidade
+            }
+            else
+            {
+                // Faz um fade out suave
+                audioSource.volume = Mathf.MoveTowards(audioSource.volume, 0f, Time.fixedDeltaTime * 2f);
+                if (audioSource.volume <= 0.01f && audioSource.isPlaying)
+                {
+                    audioSource.Stop();
+                    audioSource.volume = 1f; // garante que o próximo play comece no volume máximo
+                }
+            }
+        }
     }
 
     void DetectarVoltaCompleta(int pontoDeChegada, int pontoDeOrigem)

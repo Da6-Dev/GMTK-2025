@@ -20,6 +20,9 @@ public class TowerController : MonoBehaviour
     [Tooltip("Array com 8 sprites. 0=Direita, e segue em sentido horário.")]
     public Sprite[] directionSprites = new Sprite[8];
 
+    [Header("Áudio")]
+    public AudioClip somTiro;
+    private AudioSource audioSource;
 
     private List<Transform> enemiesInRange = new List<Transform>();
     private Transform currentTarget;
@@ -46,6 +49,10 @@ public class TowerController : MonoBehaviour
         }
 
         GetComponent<CircleCollider2D>().radius = range;
+
+        // Adiciona um AudioSource se não houver um
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.clip = somTiro;
     }
 
     void Update()
@@ -142,10 +149,13 @@ public class TowerController : MonoBehaviour
         {
             projectile.Initialize(currentTarget, damage);
         }
+
+        // Reproduz o som do tiro
+        audioSource.Play();
     }
 
     // Detecta inimigos entrando no alcance
-void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Enemy"))
         {

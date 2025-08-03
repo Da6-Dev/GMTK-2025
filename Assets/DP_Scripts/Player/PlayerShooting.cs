@@ -22,6 +22,9 @@ public class PlayerShooting : MonoBehaviour
     public Texture2D cursorTexture;
     public Vector2 hotspot = Vector2.zero;
 
+    public AudioClip somTiro;
+    private AudioSource audioSource;
+
     void Awake()
     {
         Cursor.SetCursor(cursorTexture, hotspot, CursorMode.Auto);
@@ -37,7 +40,13 @@ public class PlayerShooting : MonoBehaviour
         if (stats == null)
         {
             Debug.LogError("ERRO: PlayerStats.Instance não foi encontrado na cena!");
-            this.enabled = false; // Desativa o script se o cérebro não for encontrado.
+            this.enabled = false;
+        }
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
         }
     }
 
@@ -101,6 +110,10 @@ public class PlayerShooting : MonoBehaviour
     void Shoot()
     {
         if (projetilPrefab == null || pontoDeTiro == null) return;
+
+        // Toca o som de tiro
+        if (somTiro != null && audioSource != null)
+            audioSource.PlayOneShot(somTiro);
 
         int totalProjectiles = 1 + stats.additionalProjectiles;
         float spreadAngle = 10f; // Ângulo em graus entre os projéteis extras

@@ -5,7 +5,7 @@ public class SistemaDeVida : MonoBehaviour
     [Header("Configurações de Vida")]
     [Tooltip("A quantidade máxima de vida que este objeto pode ter.")]
     public int vidaMaxima = 100;
-    
+
     [HideInInspector] 
     public int recompensaPorMorte = 0;
     private int vidaAtual;
@@ -14,6 +14,12 @@ public class SistemaDeVida : MonoBehaviour
     private Animator animator;
     private bool estaMorto = false;
     public float tempoAnimacaoMorte = 1f;
+
+    [Header("Áudio (apenas para Crystal)")]
+    public AudioClip somDanoFraco;
+    public AudioClip somDanoMedio;
+    public AudioClip somDanoForte;
+    private AudioSource audioSource;
 
     public int VidaAtual
     {
@@ -24,6 +30,9 @@ public class SistemaDeVida : MonoBehaviour
     void Awake()
     {
         animator = GetComponent<Animator>(); // Pega o Animator
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
     }
 
     void Start()
@@ -37,6 +46,18 @@ public class SistemaDeVida : MonoBehaviour
 
         int danoFinal = Mathf.RoundToInt(quantidadeDeDano * damageMultiplier);
         vidaAtual -= danoFinal;
+
+        // Se for o Crystal, toca um som aleatório entre os três disponíveis
+        if (CompareTag("Crystal"))
+        {
+            AudioClip[] sons = new AudioClip[] { somDanoFraco, somDanoMedio, somDanoForte };
+            var sonsValidos = System.Array.FindAll(sons, s => s != null);
+            if (sonsValidos.Length > 0 && !audioSource.isPlaying)
+            {
+                int idx = Random.Range(0, sonsValidos.Length);
+                audioSource.PlayOneShot(sonsValidos[idx]);
+            }
+        }
 
         if (vidaAtual <= 0)
         {

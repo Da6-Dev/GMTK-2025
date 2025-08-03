@@ -8,6 +8,8 @@ public class PlayerShooting : MonoBehaviour
     [Tooltip("O objeto (bala) que será disparado.")]
     public GameObject projetilPrefab;
     [Tooltip("O ponto de origem de onde os projéteis são disparados.")]
+
+    public GameObject gun;
     public Transform pontoDeTiro;
     private SpriteRenderer spriteRenderer;
     private Camera mainCamera;
@@ -16,6 +18,18 @@ public class PlayerShooting : MonoBehaviour
     private float dispersaoAtual;
 
     private PlayerStats stats;
+
+    public Texture2D cursorTexture;
+    public Vector2 hotspot = Vector2.zero;
+
+    public AudioClip somTiro;
+    private AudioSource audioSource;
+
+    void Awake()
+    {
+        Cursor.SetCursor(cursorTexture, hotspot, CursorMode.Auto);
+        DontDestroyOnLoad(gameObject); // Para manter o cursor em todas as cenas
+    }
 
     void Start()
     {
@@ -26,7 +40,13 @@ public class PlayerShooting : MonoBehaviour
         if (stats == null)
         {
             Debug.LogError("ERRO: PlayerStats.Instance não foi encontrado na cena!");
-            this.enabled = false; // Desativa o script se o cérebro não for encontrado.
+            this.enabled = false;
+        }
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
         }
     }
 
@@ -48,6 +68,22 @@ public class PlayerShooting : MonoBehaviour
         angulo = Mathf.Atan2(direcaoDaMira.y, direcaoDaMira.x) * Mathf.Rad2Deg;
         int indexDoSprite = GetIndexPorAngulo(angulo);
         spriteRenderer.sprite = spritesDeMira[indexDoSprite];
+
+        // Rotaciona a gun para mirar no mouse
+        if (gun != null)
+        {
+            gun.transform.rotation = Quaternion.Euler(0, 0, angulo);
+
+            // Flip horizontal (X) quando mirar para a DIREITA (ângulo entre -90 e 90)
+            if (angulo > -90f && angulo < 90f)
+            {
+                gun.transform.localScale = new Vector3(-1, 1, 1);
+            }
+            else
+            {
+                gun.transform.localScale = new Vector3(-1, -1, 1);
+            }
+        }
     }
 
     void HandleShooting()
@@ -74,6 +110,10 @@ public class PlayerShooting : MonoBehaviour
     void Shoot()
     {
         if (projetilPrefab == null || pontoDeTiro == null) return;
+
+        // Toca o som de tiro
+        if (somTiro != null && audioSource != null)
+            audioSource.PlayOneShot(somTiro);
 
         int totalProjectiles = 1 + stats.additionalProjectiles;
         float spreadAngle = 10f; // Ângulo em graus entre os projéteis extras

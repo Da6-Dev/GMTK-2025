@@ -1,12 +1,22 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using UnityEditor.Rendering.Universal;
+using TMPro; // Necessário para controlar componentes TextMeshPro
 
 public class BuildManager : MonoBehaviour
 {
     public static BuildManager instance;
 
     [Header("Referências da UI")]
+    public GameObject upgradeMenuUI;
+    public Image upgradeIcon;
+    public TextMeshProUGUI towerNameText;
+    public TextMeshProUGUI nivelAtualText;
+    public TextMeshProUGUI danoAtualText;
+    public TextMeshProUGUI danoUpgradeText;
+    public GameObject upgradeButtonUI;
+    public TextMeshProUGUI upgradeCostText;
     public GameObject buildMenuUI;
     public GameObject blockerFundo;
     public GameObject towerButtonPrefab;
@@ -41,34 +51,109 @@ public class BuildManager : MonoBehaviour
     // MÉTODO AJUSTADO
     public void OpenBuildMenu(TowerSlot slot)
     {
-        if (selectedSlot != null)
+        CloseAllMenus();
+
+        if (slot == null)
         {
-            selectedSlot.OnDeselect();
+            Debug.LogError("Slot de torre inválido!");
+            return;
         }
+
+        SelectSlot(slot);
+        buildMenuUI.SetActive(true);
+        blockerFundo.SetActive(true);
+    }
+
+    public void OpenUpgradeMenu(TowerSlot slot)
+    {
+        CloseAllMenus();
+
+        if (slot == null || slot.currentTower == null)
+        {
+            Debug.LogError("Slot ou torre inválida para upgrade!");
+            return;
+        }
+
+        TowerData towerData = slot.currentTower.GetComponent<TowerData>();
+        if (towerData == null)
+        {
+            Debug.LogError("O prefab da torre não possui o componente TowerData!");
+            return;
+        }
+
+        // Atualiza UI
+        upgradeIcon.sprite = towerData.icon;
+        towerNameText.text = towerData.nomeDaTorre;
+        nivelAtualText.text = "Nível Atual: " + towerData.nivel;
+        danoAtualText.text = "Dano Atual: " + towerData.danoAtual;
+        danoUpgradeText.text = "Dano no Próximo Nível: " + towerData.danoUpgrade;
+        upgradeCostText.text = "Custo de Upgrade: " + towerData.custoUpgrade;
+
+        SelectSlot(slot);
+        upgradeMenuUI.SetActive(true);
+        blockerFundo.SetActive(true);
+    }
+
+    private void SelectSlot(TowerSlot slot)
+    {
+        if (selectedSlot != null)
+            selectedSlot.OnDeselect();
 
         selectedSlot = slot;
         selectedSlot.OnSelect();
+    }
 
-        if (buildMenuUI != null)
+    public void UpgradeTower()
+    {
+        if (selectedSlot == null || selectedSlot.currentTower == null)
         {
-            buildMenuUI.SetActive(true);
-            blockerFundo.SetActive(true);
+            Debug.LogError("Nenhum slot ou torre selecionada para upgrade!");
+            return;
         }
+
+        TowerData towerData = selectedSlot.currentTower.GetComponent<TowerData>();
+        if (towerData == null)
+        {
+            Debug.LogError("O prefab da torre não possui o componente TowerData!");
+            return;
+        }
+
+        // Limite de upgrades: máximo nível 4
+        if (towerData.nivel >= 4)
+        {
+            Debug.LogWarning("A torre já está no nível máximo!");
+            return;
+        }
+
+        bool transacaoBemSucedida = EconomyManager.Instance.GastarDinheiro(towerData.custoUpgrade);
+
+        if (transacaoBemSucedida)
+        {
+            towerData.nivel++;
+            towerData.danoAtual = towerData.danoUpgrade;
+            towerData.danoUpgrade = towerData.danoAtual * 2; // Progressão de dano
+            towerData.custoUpgrade = towerData.custoUpgrade * 2; // Progressão de custo
+
+            // Se chegou no nível máximo, pode ocultar o botão de upgrade ou atualizar a UI
+            if (towerData.nivel >= 4 && upgradeButtonUI != null)
+                upgradeButtonUI.SetActive(false);
+
+            CloseUpgradeMenu();
+        }
+        else
+        {
+            Debug.LogWarning("Dinheiro insuficiente para fazer upgrade da torre: " + towerData.custoUpgrade);
+        }
+    }
+
+    public void CloseUpgradeMenu()
+    {
+        CloseAllMenus();
     }
 
     public void CloseBuildMenu()
     {
-        if (selectedSlot != null)
-        {
-            selectedSlot.OnDeselect();
-            selectedSlot = null;
-        }
-
-        if (buildMenuUI != null)
-        {
-            buildMenuUI.SetActive(false);
-            blockerFundo.SetActive(false);
-        }
+        CloseAllMenus();
     }
 
     public void BuildTower(GameObject towerPrefab)
@@ -91,10 +176,12 @@ public class BuildManager : MonoBehaviour
         if (transacaoBemSucedida)
         {
             selectedSlot.BuildTowerOnSlot(towerPrefab);
+            selectedSlot = null;
             CloseBuildMenu();
         }
         else
         {
+            Debug.LogWarning("Dinheiro insuficiente para construir a torre: " + towerData.custoDeConstrucao);
         }
     }
 
@@ -120,5 +207,18 @@ public class BuildManager : MonoBehaviour
             }
         }
         LayoutRebuilder.ForceRebuildLayoutImmediate(buttonContainer as RectTransform);
+    }
+
+    public void CloseAllMenus()
+    {
+        if (selectedSlot != null)
+        {
+            selectedSlot.OnDeselect();
+            selectedSlot = null;
+        }
+
+        buildMenuUI.SetActive(false);
+        upgradeMenuUI.SetActive(false);
+        blockerFundo.SetActive(false);
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class EnemyAttack : MonoBehaviour
 {
@@ -45,11 +46,11 @@ public class EnemyAttack : MonoBehaviour
         }
     }
 
-    void OnTriggerStay2D(Collider2D other)
+    void OnCollisionStay2D(Collision2D collision)
     {
-        if (!ehMelee || Time.time < proximoAtaquePermitido || other.gameObject != ia.alvoObjeto) return;
+        if (!ehMelee || Time.time < proximoAtaquePermitido || collision.gameObject != ia.alvoObjeto) return;
 
-        SistemaDeVida vidaDoAlvo = other.GetComponent<SistemaDeVida>();
+        SistemaDeVida vidaDoAlvo = collision.gameObject.GetComponent<SistemaDeVida>();
 
         if (vidaDoAlvo != null)
         {
@@ -59,6 +60,10 @@ public class EnemyAttack : MonoBehaviour
 
     private void AtacarCorpoACorpo(SistemaDeVida alvo)
     {
+        // Para o movimento do inimigo
+        if (ia != null)
+            ia.podeMover = false;
+
         animator.SetTrigger("Attack");
 
         int danoFinal = Mathf.RoundToInt(dano * damageModifier);
@@ -66,6 +71,9 @@ public class EnemyAttack : MonoBehaviour
         alvo.ReceberDano(danoFinal);
 
         proximoAtaquePermitido = Time.time + tempoEntreAtaques;
+
+        // Opcional: reabilite o movimento após o ataque, se quiser
+        StartCoroutine(VoltarAMoverDepoisDe(tempoEntreAtaques));
     }
 
     private void AtacarADistancia()
@@ -93,5 +101,12 @@ public class EnemyAttack : MonoBehaviour
     public void SetDamageModifier(float modifier)
     {
         this.damageModifier = modifier;
+    }
+
+    private IEnumerator VoltarAMoverDepoisDe(float tempo)
+    {
+        yield return new WaitForSeconds(tempo);
+        if (ia != null)
+            ia.podeMover = true;
     }
 }

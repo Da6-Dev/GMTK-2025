@@ -18,33 +18,33 @@ public class InputManager : MonoBehaviour
         {
             TowerSlot hitSlot = hit.collider.GetComponent<TowerSlot>();
 
-            if (currentHoveredSlot != hitSlot)
+            if (hitSlot != null)
             {
-                if (currentHoveredSlot != null)
+                if (currentHoveredSlot != hitSlot)
                 {
-                    currentHoveredSlot.OnMouseExitSlot();
+                    if (currentHoveredSlot != null)
+                    {
+                        currentHoveredSlot.OnMouseExitSlot();
+                    }
+
+                    currentHoveredSlot = hitSlot;
+                    currentHoveredSlot.OnMouseEnterSlot();
                 }
-                currentHoveredSlot = hitSlot;
-                currentHoveredSlot.OnMouseEnterSlot();
             }
-        }
 
-        else if (currentHoveredSlot != null)
-        {
-            currentHoveredSlot.OnMouseExitSlot();
-            currentHoveredSlot = null;
         }
-
-        if (Input.GetMouseButtonDown(0))
+        else
         {
-            if (EventSystem.current.IsPointerOverGameObject())
-            {
-                return;
-            }
             if (currentHoveredSlot != null)
             {
-                currentHoveredSlot.ClickSlot();
+                currentHoveredSlot.OnMouseExitSlot();
+                currentHoveredSlot = null;
             }
+        }
+
+        if (Input.GetMouseButtonDown(0) && currentHoveredSlot != null)
+        {
+            currentHoveredSlot.ClickSlot();
         }
     }
 }

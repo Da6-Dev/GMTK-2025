@@ -7,7 +7,8 @@ public class TowerController : MonoBehaviour
     [Header("Atributos da Torre")]
     public float range = 15f;
     public float timeBetweenAttacks = 1f;
-    public int damage = 20;
+    public TowerData towerData; // Referência ao scriptable object com os dados da torre
+    public int damage = 5; // Dano da torre, pode ser ajustado no TowerData
 
     [Header("Configurações Adicionais")]
     [Tooltip("A Layer onde os inimigos se encontram. Precisa ser configurado no Unity.")]
@@ -19,6 +20,9 @@ public class TowerController : MonoBehaviour
     [Tooltip("Array com 8 sprites. 0=Direita, e segue em sentido horário.")]
     public Sprite[] directionSprites = new Sprite[8];
 
+    [Header("Áudio")]
+    public AudioClip somTiro;
+    private AudioSource audioSource;
 
     private List<Transform> enemiesInRange = new List<Transform>();
     private Transform currentTarget;
@@ -26,6 +30,16 @@ public class TowerController : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     void Start()
     {
+        towerData = GetComponent<TowerData>();
+        if (towerData != null)
+        {
+            damage = towerData.danoAtual;
+        }
+        else
+        {
+            Debug.LogError("TowerData não está configurado no prefab da torre!");
+            this.enabled = false; // Desabilita o script se TowerData não estiver configurado
+        }
         // Pega o componente SpriteRenderer da própria torre
         spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer == null)
@@ -35,6 +49,10 @@ public class TowerController : MonoBehaviour
         }
 
         GetComponent<CircleCollider2D>().radius = range;
+
+        // Adiciona um AudioSource se não houver um
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.clip = somTiro;
     }
 
     void Update()
@@ -131,10 +149,13 @@ public class TowerController : MonoBehaviour
         {
             projectile.Initialize(currentTarget, damage);
         }
+
+        // Reproduz o som do tiro
+        audioSource.Play();
     }
 
     // Detecta inimigos entrando no alcance
-void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Enemy"))
         {

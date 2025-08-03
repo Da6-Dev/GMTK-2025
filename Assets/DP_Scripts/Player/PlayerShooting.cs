@@ -8,6 +8,8 @@ public class PlayerShooting : MonoBehaviour
     [Tooltip("O objeto (bala) que será disparado.")]
     public GameObject projetilPrefab;
     [Tooltip("O ponto de origem de onde os projéteis são disparados.")]
+
+    public GameObject gun;
     public Transform pontoDeTiro;
     private SpriteRenderer spriteRenderer;
     private Camera mainCamera;
@@ -16,6 +18,15 @@ public class PlayerShooting : MonoBehaviour
     private float dispersaoAtual;
 
     private PlayerStats stats;
+
+    public Texture2D cursorTexture;
+    public Vector2 hotspot = Vector2.zero;
+
+    void Awake()
+    {
+        Cursor.SetCursor(cursorTexture, hotspot, CursorMode.Auto);
+        DontDestroyOnLoad(gameObject); // Para manter o cursor em todas as cenas
+    }
 
     void Start()
     {
@@ -48,6 +59,22 @@ public class PlayerShooting : MonoBehaviour
         angulo = Mathf.Atan2(direcaoDaMira.y, direcaoDaMira.x) * Mathf.Rad2Deg;
         int indexDoSprite = GetIndexPorAngulo(angulo);
         spriteRenderer.sprite = spritesDeMira[indexDoSprite];
+
+        // Rotaciona a gun para mirar no mouse
+        if (gun != null)
+        {
+            gun.transform.rotation = Quaternion.Euler(0, 0, angulo);
+
+            // Flip horizontal (X) quando mirar para a DIREITA (ângulo entre -90 e 90)
+            if (angulo > -90f && angulo < 90f)
+            {
+                gun.transform.localScale = new Vector3(-1, 1, 1);
+            }
+            else
+            {
+                gun.transform.localScale = new Vector3(-1, -1, 1);
+            }
+        }
     }
 
     void HandleShooting()

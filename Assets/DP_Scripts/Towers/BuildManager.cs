@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using UnityEditor.Rendering.Universal;
 using TMPro; // Necessário para controlar componentes TextMeshPro
 
 public class BuildManager : MonoBehaviour

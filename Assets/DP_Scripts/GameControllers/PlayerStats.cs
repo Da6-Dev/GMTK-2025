@@ -1,6 +1,6 @@
 using UnityEngine;
+using System.Collections.Generic;
 
-// Este script será o "cérebro" que armazena todos os atributos e upgrades do jogador.
 public class PlayerStats : MonoBehaviour
 {
     #region Singleton
@@ -21,6 +21,8 @@ public class PlayerStats : MonoBehaviour
         }
     }
     #endregion
+
+    private HashSet<string> upgradesComprados = new HashSet<string>();
 
     [Header("Atributos Base - Poder")]
     public float baseDamage = 25f;
@@ -106,8 +108,6 @@ public class PlayerStats : MonoBehaviour
     public GameObject weakenAuraPrefab;
 
     // --- PROPRIEDADES CALCULADAS ---
-    // Outros scripts usarão estas propriedades para obter os valores finais.
-    // Ex: O dano final é o dano base multiplicado pelos upgrades.
     public float CurrentDamage { get { return baseDamage * damageMultiplier; } }
     public float CurrentFireRate
     {
@@ -133,66 +133,373 @@ public class PlayerStats : MonoBehaviour
     public bool IsDashOnCooldown { get; private set; }
     public bool IsDirectionChangeOnCooldown { get; private set; }
 
-    public void Upgrade_TiroMelhorado()
+    public void TentarComprarUpgrade(string upgradeID)
     {
-        // Aumenta o multiplicador de dano em 25% (0.25)
-        damageMultiplier += 0.25f;
-        Debug.Log("UPGRADE: Tiro Melhorado! Novo Multiplicador de Dano: " + damageMultiplier);
+        if (upgradesComprados.Contains(upgradeID))
+        {
+            Debug.Log($"Upgrade '{upgradeID}' já foi comprado.");
+            return;
+        }
+
+        int custo = 0;
+        string preRequisito = null;
+
+        // --- ÁRVORE DE HABILIDADES COMPLETA ---
+        switch (upgradeID)
+        {
+            // ==========================================================
+            // === 1. RAMO DE PODER ================================
+            // ==========================================================
+
+            // --- Caminho do Tiro Básico ---
+            case "PODER_DANO_1":
+                custo = 10;
+                preRequisito = null;
+                break;
+            case "PODER_RANGE_1":
+                custo = Mathf.CeilToInt(10 * 1.3f);
+                preRequisito = "PODER_DANO_1";
+                break;
+            case "PODER_TIRO_EXPLOSIVO":
+                custo = Mathf.CeilToInt(13 * 1.3f);
+                preRequisito = "PODER_RANGE_1";
+                break;
+
+            // --- Caminho do Triple Shot ---
+            case "PODER_PROJETIL_EXTRA_1":
+                custo = 15;
+                preRequisito = null;
+                break;
+            case "PODER_MENOS_SPREAD":
+                custo = Mathf.CeilToInt(15 * 1.3f);
+                preRequisito = "PODER_PROJETIL_EXTRA_1";
+                break;
+            case "PODER_PIERCING_1":
+                custo = Mathf.CeilToInt(20 * 1.3f);
+                preRequisito = "PODER_MENOS_SPREAD";
+                break;
+            
+            // --- Caminho do Fire Rate ---
+            case "PODER_FIRERATE_1":
+                custo = 12;
+                preRequisito = null;
+                break;
+            case "PODER_OVERCLOCK":
+                custo = Mathf.CeilToInt(12 * 1.3f);
+                preRequisito = "PODER_FIRERATE_1";
+                break;
+            case "PODER_FIRERATE_2":
+                 custo = Mathf.CeilToInt(16 * 1.3f);
+                 preRequisito = "PODER_OVERCLOCK";
+                 break;
+
+            // --- Caminho do Crítico ---
+            case "PODER_CRITICO_1":
+                custo = 20;
+                preRequisito = null;
+                break;
+            case "PODER_EXECUCAO":
+                custo = Mathf.CeilToInt(20 * 1.3f);
+                preRequisito = "PODER_CRITICO_1";
+                break;
+            case "PODER_CRITICO_2":
+                custo = Mathf.CeilToInt(26 * 1.3f);
+                preRequisito = "PODER_EXECUCAO";
+                break;
+
+            // ==========================================================
+            // === 2. RAMO DE CONTROLE =============================
+            // ==========================================================
+
+            // --- Caminho de Lentidão ---
+            case "CONTROLE_LENTIDAO_1":
+                custo = 15;
+                preRequisito = null;
+                break;
+            case "CONTROLE_SUPER_LENTIDAO":
+                custo = Mathf.CeilToInt(15 * 1.3f);
+                preRequisito = "CONTROLE_LENTIDAO_1";
+                break;
+            case "CONTROLE_LENTIDAO_2":
+                custo = Mathf.CeilToInt(20 * 1.3f);
+                preRequisito = "CONTROLE_SUPER_LENTIDAO";
+                break;
+
+            // --- Caminho de Debuff de Ataque ---
+            case "CONTROLE_ENFRAQUECER_1":
+                custo = 15;
+                preRequisito = null;
+                break;
+            case "CONTROLE_AURA_ENFRAQUECER":
+                custo = Mathf.CeilToInt(15 * 1.3f);
+                preRequisito = "CONTROLE_ENFRAQUECER_1";
+                break;
+            case "CONTROLE_AURA_MAIOR":
+                custo = Mathf.CeilToInt(20 * 1.3f);
+                preRequisito = "CONTROLE_AURA_ENFRAQUECER";
+                break;
+            
+            // --- Caminho de Debuff de Defesa ---
+            case "CONTROLE_CORROSAO_1":
+                custo = 20;
+                preRequisito = null;
+                break;
+            case "CONTROLE_CORROSAO_STACK":
+                custo = Mathf.CeilToInt(20 * 1.3f);
+                preRequisito = "CONTROLE_CORROSAO_1";
+                break;
+
+            // ==========================================================
+            // === 3. RAMO TÁTICO ==================================
+            // ==========================================================
+
+            // --- Caminho de Velocidade ---
+            case "TATICO_VELOCIDADE_1":
+                custo = 10;
+                preRequisito = null;
+                break;
+            case "TATICO_DASH":
+                custo = Mathf.CeilToInt(10 * 1.3f);
+                preRequisito = "TATICO_VELOCidade_1";
+                break;
+            case "TATICO_VELOCIDADE_2":
+                custo = Mathf.CeilToInt(13 * 1.3f);
+                preRequisito = "TATICO_DASH";
+                break;
+            
+            // --- Caminho de Controle de Trilho ---
+            case "TATICO_INVERTER_TRILHO":
+                custo = 10;
+                preRequisito = null;
+                break;
+            case "TATICO_REDUZIR_CD_INVERSAO":
+                custo = Mathf.CeilToInt(10 * 1.3f);
+                preRequisito = "TATICO_INVERTER_TRILHO";
+                break;
+            case "TATICO_IGNORAR_CD_INVERSAO":
+                custo = Mathf.CeilToInt(13 * 1.3f);
+                preRequisito = "TATICO_REDUZIR_CD_INVERSAO";
+                break;
+
+            // --- Caminho de Sinergia com Torre (Efeitos a implementar) ---
+            case "TATICO_SINERGIA_TORRE_1":
+                custo = 25;
+                preRequisito = null;
+                break;
+            case "TATICO_BOOST_TORRE":
+                custo = Mathf.CeilToInt(25 * 1.3f);
+                preRequisito = "TATICO_SINERGIA_TORRE_1";
+                break;
+            case "TATICO_SINERGIA_TORRE_2":
+                custo = Mathf.CeilToInt(33 * 1.3f);
+                preRequisito = "TATICO_BOOST_TORRE";
+                break;
+
+            // --- Caminho de Mais Carrinhos (Efeitos a implementar) ---
+            case "TATICO_CARRINHO_1":
+                custo = 50;
+                preRequisito = null;
+                break;
+            case "TATICO_CARRINHO_SKILL":
+                custo = Mathf.CeilToInt(50 * 1.3f);
+                preRequisito = "TATICO_CARRINHO_1";
+                break;
+            case "TATICO_CARRINHO_2":
+                custo = Mathf.CeilToInt(65 * 1.3f);
+                preRequisito = "TATICO_CARRINHO_SKILL";
+                break;
+        }
+
+        // --- LÓGICA DE VALIDAÇÃO E COMPRA (permanece a mesma) ---
+
+        if (custo == 0)
+        {
+            Debug.LogError($"ID de upgrade desconhecido: '{upgradeID}'");
+            return;
+        }
+        
+        if (preRequisito != null && !upgradesComprados.Contains(preRequisito))
+        {
+            Debug.Log($"Pré-requisito '{preRequisito}' para o upgrade '{upgradeID}' não foi comprado.");
+            return;
+        }
+
+        if (EconomyManager.Instance.GastarDinheiro(custo))
+        {
+            Debug.Log($"Upgrade '{upgradeID}' comprado por {custo} moedas!");
+            AplicarUpgrade(upgradeID);
+            upgradesComprados.Add(upgradeID);
+        }
     }
 
-    public void Upgrade_AumentarRange()
+    private void AplicarUpgrade(string upgradeID)
     {
-        // Aumenta o multiplicador de range em 10% (0.10)
-        rangeMultiplier += 0.10f;
-        Debug.Log("UPGRADE: Range Aumentado! Novo Multiplicador de Range: " + rangeMultiplier);
-    }
+        switch (upgradeID)
+        {
+            // ==========================================================
+            // === 1. RAMO DE PODER ================================
+            // ==========================================================
 
-    public void Upgrade_TiroExplosivo()
-    {
-        // Ativa a flag do tiro explosivo
-        hasExplosiveShot = true;
-        Debug.Log("UPGRADE: Tiro Explosivo ativado!");
-    }
+            // --- Caminho do Tiro Básico ---
+            case "PODER_DANO_1":
+                damageMultiplier += 0.25f;
+                Debug.Log("EFEITO: Dano aumentado! Novo Multiplicador: " + damageMultiplier);
+                break;
+            case "PODER_RANGE_1":
+                rangeMultiplier += 0.10f;
+                Debug.Log("EFEITO: Range aumentado! Novo Multiplicador: " + rangeMultiplier);
+                break;
+            case "PODER_TIRO_EXPLOSIVO":
+                hasExplosiveShot = true;
+                Debug.Log("EFEITO: Tiro Explosivo ativado!");
+                break;
 
-    public void Upgrade_AdicionarTiro()
-    {
-        additionalProjectiles++;
-        Debug.Log("UPGRADE: +1 Tiro! Total de projéteis extras: " + additionalProjectiles);
-    }
+            // --- Caminho do Triple Shot ---
+            case "PODER_PROJETIL_EXTRA_1":
+                additionalProjectiles++;
+                Debug.Log("EFEITO: +1 Tiro! Total de projéteis extras: " + additionalProjectiles);
+                break;
+            case "PODER_MENOS_SPREAD":
+                spreadMultiplier *= 0.8f;
+                Debug.Log("EFEITO: Menos Spread! Novo multiplicador de dispersão: " + spreadMultiplier);
+                break;
+            case "PODER_PIERCING_1":
+                hasPiercingShot = true;
+                pierceCount = 1;
+                Debug.Log("EFEITO: Piercing Ativado! Atravessa " + pierceCount + " inimigo(s).");
+                break;
 
-    public void Upgrade_ReduzirSpread()
-    {
-        // Reduz a dispersão em 20%
-        spreadMultiplier *= 0.8f;
-        Debug.Log("UPGRADE: Menos Spread! Novo multiplicador de dispersão: " + spreadMultiplier);
-    }
+            // --- Caminho do Fire Rate ---
+            case "PODER_FIRERATE_1":
+                fireRateMultiplier += 0.2f;
+                Debug.Log("EFEITO: +20% Fire Rate! Novo multiplicador: " + fireRateMultiplier);
+                break;
+            case "PODER_OVERCLOCK":
+                isOverclockUnlocked = true;
+                Debug.Log("EFEITO: Overclock Desbloqueado! Pressione R para ativar.");
+                break;
+            case "PODER_FIRERATE_2":
+                fireRateMultiplier += 0.5f;
+                Debug.Log("EFEITO: +50% Fire Rate! Novo multiplicador: " + fireRateMultiplier);
+                break;
 
-    public void Upgrade_AdicionarPiercing()
-    {
-        hasPiercingShot = true;
-        // O upgrade diz para atravessar 1 inimigo
-        pierceCount = 1;
-        Debug.Log("UPGRADE: Piercing Ativado! Atravessa " + pierceCount + " inimigo(s).");
-    }
+            // --- Caminho do Crítico ---
+            case "PODER_CRITICO_1":
+                critChance = 0.1f;
+                critMultiplier = 2f;
+                Debug.Log("EFEITO: Crítico Nível 1! Chance: 10%, Dano: 2x");
+                break;
+            case "PODER_EXECUCAO":
+                isExecuteUnlocked = true;
+                Debug.Log("EFEITO: Execução Desbloqueada!");
+                break;
+            case "PODER_CRITICO_2":
+                critChance = 0.3f;
+                critMultiplier = 3f;
+                Debug.Log("EFEITO: Crítico Nível 2! Chance: 30%, Dano: 3x");
+                break;
 
-    public void Upgrade_AumentarFireRate20()
-    {
-        // Aumenta a cadência em 20%. Somamos 0.2 ao multiplicador.
-        fireRateMultiplier += 0.2f;
-        Debug.Log("UPGRADE: +20% Fire Rate! Novo multiplicador: " + fireRateMultiplier);
-    }
+            // ==========================================================
+            // === 2. RAMO DE CONTROLE =============================
+            // ==========================================================
 
-    public void Upgrade_AumentarFireRate50()
-    {
-        // Aumenta a cadência em 50%. Somamos 0.5 ao multiplicador.
-        fireRateMultiplier += 0.5f;
-        Debug.Log("UPGRADE: +50% Fire Rate! Novo multiplicador: " + fireRateMultiplier);
-    }
+            // --- Caminho de Lentidão ---
+            case "CONTROLE_LENTIDAO_1":
+                hasSlowShot = true;
+                Debug.Log("EFEITO: Tiro com Lentidão ativado! Inimigos ficarão 25% mais lentos.");
+                break;
+            case "CONTROLE_SUPER_LENTIDAO":
+                hasSuperSlow = true; // Habilita o bônus de dano em inimigos lentos.
+                Debug.Log("EFEITO: Super Lentidão! Inimigos lentos agora recebem +10% de dano.");
+                break;
+            case "CONTROLE_LENTIDAO_2":
+                slowAmount = 0.50f;
+                Debug.Log("EFEITO: Lentidão aumentada para 50%!");
+                break;
 
-    public void Upgrade_UnlockOverclock()
-    {
-        isOverclockUnlocked = true;
-        Debug.Log("UPGRADE: Overclock Desbloqueado! Pressione R para ativar.");
+            // --- Caminho de Debuff de Ataque ---
+            case "CONTROLE_ENFRAQUECER_1":
+                hasWeakenShot = true;
+                Debug.Log("EFEITO: Tiro Enfraquecedor ativado! Dano dos inimigos atingidos reduzido em 25%.");
+                break;
+            case "CONTROLE_AURA_ENFRAQUECER":
+                hasWeakenAura = true;
+                Debug.Log("EFEITO: Área de Enfraquecimento ativada! Tiros criarão auras no impacto.");
+                break;
+            case "CONTROLE_AURA_MAIOR":
+                weakenAuraSizeMultiplier += 0.5f;
+                Debug.Log("EFEITO: Área de Enfraquecimento aumentada!");
+                break;
+
+            // --- Caminho de Debuff de Defesa ---
+            case "CONTROLE_CORROSAO_1":
+                hasDefenseDownShot = true;
+                Debug.Log("EFEITO: Tiro Corrosivo ativado! Inimigos atingidos recebem 10% a mais de dano.");
+                break;
+            case "CONTROLE_CORROSAO_STACK":
+                canStackDefenseDown = true;
+                defenseDownMaxStacks = 3;
+                Debug.Log("EFEITO: Corrosão Acumulativa! Debuff de defesa agora acumula até 3 vezes.");
+                break;
+
+            // ==========================================================
+            // === 3. RAMO TÁTICO ==================================
+            // ==========================================================
+
+            // --- Caminho de Velocidade ---
+            case "TATICO_VELOCIDADE_1":
+                cartSpeedMultiplier += 0.25f;
+                Debug.Log("EFEITO: Velocidade do Carrinho aumentada em 25%!");
+                break;
+            case "TATICO_DASH":
+                isDashUnlocked = true;
+                Debug.Log("EFEITO: Dash Desbloqueado! Pressione Shift Esquerdo para usar.");
+                break;
+            case "TATICO_VELOCIDADE_2":
+                cartSpeedMultiplier += 0.50f;
+                Debug.Log("EFEITO: Velocidade do Carrinho aumentada em mais 50%!");
+                break;
+
+            // --- Caminho de Controle de Trilho ---
+            case "TATICO_INVERTER_TRILHO":
+                canChangeDirection = true;
+                Debug.Log("EFEITO: Troca de Direção liberada! Pressione Q para inverter o movimento.");
+                break;
+            case "TATICO_REDUZIR_CD_INVERSAO":
+                directionChangeCooldown *= 0.5f;
+                Debug.Log("EFEITO: Cooldown da Troca de Direção reduzido!");
+                break;
+            case "TATICO_IGNORAR_CD_INVERSAO":
+                // TODO: Implementar a lógica de ignorar um cooldown por round.
+                Debug.Log("EFEITO: Ignorar Cooldown de Inversão (Lógica a ser implementada).");
+                break;
+                
+            // --- Caminhos com lógica a ser implementada ---
+            case "TATICO_SINERGIA_TORRE_1":
+                 // TODO: Implementar lógica de bônus de dano para torres próximas.
+                Debug.Log("EFEITO: Bônus de 10% de dano para torres próximas (Lógica a ser implementada).");
+                break;
+            case "TATICO_BOOST_TORRE":
+                // TODO: Implementar habilidade de boost em torre.
+                Debug.Log("EFEITO: Habilidade de Boost em Torre liberada (Lógica a ser implementada).");
+                break;
+            case "TATICO_SINERGIA_TORRE_2":
+                // TODO: Aumentar o bônus de dano para 25%.
+                Debug.Log("EFEITO: Bônus de dano de sinergia aumentado para 25% (Lógica a ser implementada).");
+                break;
+            case "TATICO_CARRINHO_1":
+                // TODO: Implementar a adição de um novo carrinho.
+                Debug.Log("EFEITO: Novo carrinho liberado (Lógica a ser implementada).");
+                break;
+            case "TATICO_CARRINHO_SKILL":
+                // TODO: Implementar a skill de todos os carrinhos atirarem juntos.
+                Debug.Log("EFEITO: Skill de tiro simultâneo liberada (Lógica a ser implementada).");
+                break;
+            case "TATICO_CARRINHO_2":
+                // TODO: Implementar a adição de um segundo carrinho extra.
+                Debug.Log("EFEITO: Segundo carrinho extra liberado (Lógica a ser implementada).");
+                break;
+        }
     }
 
     // Método chamado pelo jogador para tentar ativar a habilidade
@@ -230,106 +537,6 @@ public class PlayerStats : MonoBehaviour
         IsOverclockOnCooldown = false;
     }
 
-    public void Upgrade_CritChance10()
-    {
-        critChance = 0.1f;
-        critMultiplier = 2f;
-        Debug.Log("UPGRADE: Crítico Nível 1! Chance: 10%, Dano: 2x");
-    }
-
-    public void Upgrade_UnlockExecute()
-    {
-        isExecuteUnlocked = true;
-        Debug.Log("UPGRADE: Execução Desbloqueada!");
-    }
-
-    public void Upgrade_CritChance30()
-    {
-        critChance = 0.3f;
-        critMultiplier = 3f;
-        Debug.Log("UPGRADE: Crítico Nível 2! Chance: 30%, Dano: 3x");
-    }
-
-    public void Upgrade_UnlockSlowShot()
-    {
-        hasSlowShot = true;
-        Debug.Log("UPGRADE: Tiro com Lentidão ativado! Inimigos ficarão 25% mais lentos.");
-    }
-
-    public void Upgrade_SuperSlow()
-    {
-        // É uma boa prática verificar se a habilidade anterior foi desbloqueada
-        if (!hasSlowShot)
-        {
-            Debug.LogWarning("É necessário desbloquear o 'Tiro com Lentidão' primeiro!");
-            return;
-        }
-
-        hasSuperSlow = true;
-        slowAmount = 0.50f; // Aumenta a lentidão para 50%
-        Debug.Log("UPGRADE: Super Lentidão! Inimigos ficam 50% mais lentos e recebem +10% de dano.");
-    }
-
-    public void Upgrade_UnlockWeakenShot()
-    {
-        hasWeakenShot = true;
-        Debug.Log("UPGRADE: Tiro Enfraquecedor ativado! Dano dos inimigos atingidos reduzido em 25%.");
-    }
-
-    public void Upgrade_UnlockWeakenAura()
-    {
-        if (!hasWeakenShot)
-        {
-            Debug.LogWarning("É preciso desbloquear o 'Tiro Enfraquecedor' primeiro!");
-            return;
-        }
-        hasWeakenAura = true;
-        Debug.Log("UPGRADE: Área de Enfraquecimento ativada! Tiros criarão auras no impacto.");
-    }
-
-    public void Upgrade_IncreaseAuraSize()
-    {
-        if (!hasWeakenAura)
-        {
-            Debug.LogWarning("É preciso desbloquear a 'Área de Enfraquecimento' primeiro!");
-            return;
-        }
-        // Aumenta o tamanho em 50%
-        weakenAuraSizeMultiplier += 0.5f;
-        Debug.Log("UPGRADE: Área de Enfraquecimento aumentada! Novo multiplicador de tamanho: " + weakenAuraSizeMultiplier);
-    }
-
-    public void Upgrade_UnlockDefenseDown()
-    {
-        hasDefenseDownShot = true;
-        Debug.Log("UPGRADE: Tiro Corrosivo ativado! Inimigos atingidos recebem 10% a mais de dano.");
-    }
-
-    public void Upgrade_UnlockStackingDefenseDown()
-    {
-        if (!hasDefenseDownShot)
-        {
-            Debug.LogWarning("É preciso desbloquear o 'Tiro Corrosivo' primeiro!");
-            return;
-        }
-        canStackDefenseDown = true;
-        defenseDownMaxStacks = 3;
-        Debug.Log("UPGRADE: Corrosão Acumulativa! Debuff de defesa agora acumula até 3 vezes.");
-    }
-
-    public void Upgrade_IncreaseCartSpeed()
-    {
-        // Aumenta a velocidade em 25%
-        cartSpeedMultiplier += 0.25f;
-        Debug.Log("UPGRADE TÁTICO: Velocidade do Carrinho aumentada! Novo multiplicador: " + cartSpeedMultiplier);
-    }
-
-    public void Upgrade_UnlockDash()
-    {
-        isDashUnlocked = true;
-        Debug.Log("UPGRADE TÁTICO: Dash Desbloqueado! Pressione Shift Esquerdo para usar.");
-    }
-
     public void ActivateDash()
     {
         // Só ativa se estiver desbloqueado E não estiver em uso ou em recarga
@@ -356,20 +563,6 @@ public class PlayerStats : MonoBehaviour
         Debug.Log("Dash pronto para usar novamente!");
     }
 
-    public void Upgrade_IncreaseCartSpeed50()
-    {
-        // Adiciona mais 50% ao multiplicador de velocidade.
-        // Se o jogador já tinha +25%, o total será +75%.
-        cartSpeedMultiplier += 0.50f;
-        Debug.Log("UPGRADE TÁTICO: Super Velocidade do Carrinho! Novo multiplicador: " + cartSpeedMultiplier);
-    }
-
-    public void Upgrade_UnlockDirectionChange()
-    {
-        canChangeDirection = true;
-        Debug.Log("UPGRADE TÁTICO: Troca de Direção liberada! Pressione Q para inverter o movimento.");
-    }
-
     public void TriggerDirectionChangeCooldown()
     {
         // Só inicia a corrotina se não houver uma recarga em andamento
@@ -388,24 +581,4 @@ public class PlayerStats : MonoBehaviour
         Debug.Log("Troca de direção pronta novamente.");
     }
 
-    public void Upgrade_ReduceDirectionChangeCooldown()
-    {
-        // Verifica se a habilidade de trocar de direção já foi liberada
-        if (!canChangeDirection)
-        {
-            Debug.LogWarning("É preciso desbloquear a 'Troca de Direção' primeiro!");
-            return;
-        }
-
-        // Reduz o cooldown pela metade (multiplica por 0.5)
-        directionChangeCooldown *= 0.5f;
-        Debug.Log("UPGRADE TÁTICO: Cooldown da Troca de Direção reduzido! Novo tempo: " + directionChangeCooldown + "s.");
-    }
-
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.V)) { Upgrade_IncreaseCartSpeed(); }
-        if (Input.GetKeyDown(KeyCode.B)) { Upgrade_UnlockDash(); }
-        if (Input.GetKeyDown(KeyCode.J)) { Upgrade_UnlockDirectionChange(); }
-    }
 }

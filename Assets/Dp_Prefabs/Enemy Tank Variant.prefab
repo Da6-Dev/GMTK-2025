@@ -20,6 +20,14 @@ PrefabInstance:
       propertyPath: distanciaParaParar
       value: 1.2
       objectReference: {fileID: 0}
+    - target: {fileID: 4585537566662785691, guid: 4f61b1214ec9042489701ae56b73848a, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 5dadabc66841244469f03fc007a466f9, type: 2}
+    - target: {fileID: 5579532972422908507, guid: 4f61b1214ec9042489701ae56b73848a, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -503007969357629650, guid: 0454a0f77b59fe245a2d9877a98b8fe0, type: 3}
     - target: {fileID: 5785956118044152142, guid: 4f61b1214ec9042489701ae56b73848a, type: 3}
       propertyPath: dano
       value: 35
@@ -27,6 +35,22 @@ PrefabInstance:
     - target: {fileID: 5785956118044152142, guid: 4f61b1214ec9042489701ae56b73848a, type: 3}
       propertyPath: tempoEntreAtaques
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7327770602240994582, guid: 4f61b1214ec9042489701ae56b73848a, type: 3}
+      propertyPath: m_Size.y
+      value: 1.3402929
+      objectReference: {fileID: 0}
+    - target: {fileID: 7327770602240994582, guid: 4f61b1214ec9042489701ae56b73848a, type: 3}
+      propertyPath: m_Offset.y
+      value: 0.006945133
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067246355262281830, guid: 4f61b1214ec9042489701ae56b73848a, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.x
+      value: 0.78125
+      objectReference: {fileID: 0}
+    - target: {fileID: 8067246355262281830, guid: 4f61b1214ec9042489701ae56b73848a, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.y
+      value: 1.40625
       objectReference: {fileID: 0}
     - target: {fileID: 8464149224246853124, guid: 4f61b1214ec9042489701ae56b73848a, type: 3}
       propertyPath: m_LocalPosition.x

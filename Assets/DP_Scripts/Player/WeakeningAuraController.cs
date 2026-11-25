@@ -34,7 +34,6 @@ public class WeakeningAuraController : MonoBehaviour
                 // Aplica o debuff e adiciona na lista de "já afetados"
                 enemyStatus.ApplyWeaken(this.weakenAmount, this.weakenDuration);
                 alreadyAffected.Add(other);
-                Debug.Log(other.name + " entrou na área de enfraquecimento.");
             }
         }
     }

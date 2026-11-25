@@ -2,48 +2,65 @@ using UnityEngine;
 
 public class SistemaDeVida : MonoBehaviour
 {
-    [Header("ConfiguraÁıes de Vida")]
-    [Tooltip("A quantidade m·xima de vida que este objeto pode ter.")]
+    [Header("Configura√ß√µes de Vida")]
+    [Tooltip("A quantidade m√°xima de vida que este objeto pode ter.")]
     public int vidaMaxima = 100;
 
-    // Vari·vel privada para armazenar a vida atual.
+    [HideInInspector] 
+    public int recompensaPorMorte = 0;
     private int vidaAtual;
-    private float damageMultiplier = 1f;
+    private float damageMultiplier = 1f; 
 
-    // A propriedade 'get' permite que outros scripts leiam a vida atual,
-    // mas o 'private set' impede que eles a modifiquem diretamente.
+    private Animator animator;
+    private bool estaMorto = false;
+    public float tempoAnimacaoMorte = 1f;
+
+    [Header("√Åudio (apenas para Crystal)")]
+    public AudioClip somDanoFraco;
+    public AudioClip somDanoMedio;
+    public AudioClip somDanoForte;
+    private AudioSource audioSource;
+
     public int VidaAtual
     {
         get { return vidaAtual; }
         private set { vidaAtual = value; }
     }
 
-    // Start È chamado antes do primeiro frame.
+    void Awake()
+    {
+        animator = GetComponent<Animator>(); // Pega o Animator
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+    }
+
     void Start()
     {
-        // Ao iniciar, a vida atual È definida como a vida m·xima.
         vidaAtual = vidaMaxima;
     }
 
-    // --- FunÁ„o P˙blica para Causar Dano ---
-    // Outros scripts (como o do projÈtil) chamar„o esta funÁ„o.
     public void ReceberDano(int quantidadeDeDano)
     {
-        // Reduz a vida atual pela quantidade de dano recebido.
+        if (estaMorto) return;
+
         int danoFinal = Mathf.RoundToInt(quantidadeDeDano * damageMultiplier);
         vidaAtual -= danoFinal;
 
-        // Imprime no console para sabermos que o dano foi recebido (Ûtimo para debugar).
-        Debug.Log(gameObject.name + " recebeu " + danoFinal + " de dano. Vida restante: " + vidaAtual);
+        // Se for o Crystal, toca um som aleat√≥rio entre os tr√™s dispon√≠veis
+        if (CompareTag("Crystal"))
+        {
+            AudioClip[] sons = new AudioClip[] { somDanoFraco, somDanoMedio, somDanoForte };
+            var sonsValidos = System.Array.FindAll(sons, s => s != null);
+            if (sonsValidos.Length > 0 && !audioSource.isPlaying)
+            {
+                int idx = Random.Range(0, sonsValidos.Length);
+                audioSource.PlayOneShot(sonsValidos[idx]);
+            }
+        }
 
-        // --- AQUI VOC  PODE ADICIONAR FEEDBACK VISUAL/SONORO ---
-        // Ex: Chamar uma funÁ„o para piscar o sprite de vermelho, tocar um som de "hit", etc.
-        // StartCoroutine(PiscarFeedbackDeDano());
-
-        // Verifica se a vida chegou a zero ou menos.
         if (vidaAtual <= 0)
         {
-            // Garante que a vida n„o fique negativa no display.
             vidaAtual = 0;
             Morrer();
         }
@@ -56,14 +73,22 @@ public class SistemaDeVida : MonoBehaviour
 
     private void Morrer()
     {
-        // Imprime no console que o objeto morreu.
-        Debug.Log(gameObject.name + " morreu!");
+        estaMorto = true;
+        vidaAtual = 0;
 
-        // --- AQUI VOC  ADICIONA AS CONSEQU NCIAS DA MORTE ---
-        // Ex: Tocar uma animaÁ„o de explos„o, dropar itens, adicionar pontos ao jogador, etc.
-        // Instantiate(efeitoDeExplosao, transform.position, Quaternion.identity);
+        // Aciona a anima√ß√£o de morte
+        animator.SetTrigger("Die");
 
-        // A aÁ„o mais simples È destruir o GameObject.
-        Destroy(gameObject);
+        GetComponent<Rigidbody2D>().simulated = false;
+        GetComponent<EnemyMovement>().enabled = false;
+        GetComponent<EnemyAttack>().enabled = false;
+        GetComponent<Collider2D>().enabled = false;
+
+        if (recompensaPorMorte > 0)
+        {
+            EconomyManager.Instance.AdicionarDinheiro(recompensaPorMorte);
+        }
+
+        Destroy(gameObject, tempoAnimacaoMorte);
     }
 }

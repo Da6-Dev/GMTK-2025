@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-// REMOVIDO: using Cinemachine; // Não precisamos mais desta linha
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -26,9 +25,8 @@ public class EnemySpawner : MonoBehaviour
     [Tooltip("O centro da área de spawn (usado para direcionar os inimigos).")]
     public Transform spawnCenter;
 
-    // ALTERADO: A referência agora é diretamente para o BoxCollider2D que define a área jogável.
     [Tooltip("Arraste aqui o BoxCollider2D que define os limites da área jogável.")]
-    public BoxCollider2D playableArea; 
+    public BoxCollider2D playableArea;
 
     [Tooltip("Uma margem de segurança para garantir que os inimigos apareçam fora dos limites.")]
     public float offScreenBuffer = 2f;
@@ -37,11 +35,11 @@ public class EnemySpawner : MonoBehaviour
     // --- Variáveis de estado ---
     private int currentRound = 0;
     private List<EnemyData> availableEnemies = new List<EnemyData>();
-    private Bounds playableBounds; // Nome da variável alterado para maior clareza
+    private Bounds playableBounds;
+    private List<GameObject> spawnedEnemies = new List<GameObject>();
 
     void Start()
     {
-        // ALTERADO: A lógica agora pega os limites diretamente do BoxCollider2D.
         if (playableArea != null)
         {
             playableBounds = playableArea.bounds;
@@ -49,14 +47,12 @@ public class EnemySpawner : MonoBehaviour
         else
         {
             Debug.LogError("O BoxCollider2D 'playableArea' não foi atribuído no EnemySpawner! O spawn de inimigos não funcionará.");
-            enabled = false; // Desabilita o script para evitar erros
+            enabled = false;
             return;
         }
         
         StartCoroutine(SpawnWaveCoroutine());
     }
-
-    // O resto do script (SpawnWaveCoroutine, UpdateAvailableEnemies, etc.) continua exatamente igual...
 
     private IEnumerator SpawnWaveCoroutine()
     {
@@ -64,32 +60,66 @@ public class EnemySpawner : MonoBehaviour
         {
             currentRound++;
             Debug.Log($"Iniciando Round {currentRound}");
+            
+            spawnedEnemies.Clear();
+
             UpdateAvailableEnemies();
             float threatBudget = initialThreatBudget * Mathf.Pow(threatScalingFactor, currentRound - 1);
-            Debug.Log($"Orçamento de ameaça para o round: {threatBudget}");
 
             while (threatBudget > 0 && availableEnemies.Count > 0)
             {
-                EnemyData enemyToSpawn = GetRandomAvailableEnemy();
-                if (enemyToSpawn != null && threatBudget >= enemyToSpawn.threatCost)
+                List<EnemyData> affordableEnemies = new List<EnemyData>();
+                foreach (var enemyData in availableEnemies)
                 {
-                    GameObject newEnemyGO = Instantiate(enemyToSpawn.enemyPrefab, GetRandomSpawnPosition(), Quaternion.identity);
-                    EnemyMovement enemyMovement = newEnemyGO.GetComponent<EnemyMovement>();
-                    if (enemyMovement != null)
+                    if (threatBudget >= enemyData.threatCost)
                     {
-                        enemyMovement.alvoObjeto = spawnCenter.gameObject;
+                        affordableEnemies.Add(enemyData);
                     }
-                    else
-                    {
-                        Debug.LogWarning($"O prefab do inimigo '{enemyToSpawn.name}' não possui o componente EnemyMovement!");
-                    }
-                    threatBudget -= enemyToSpawn.threatCost;
                 }
+
+                if (affordableEnemies.Count == 0)
+                {
+                    break;
+                }
+
+                EnemyData enemyToSpawn = affordableEnemies[Random.Range(0, affordableEnemies.Count)];
+                
+                GameObject newEnemyGO = Instantiate(enemyToSpawn.enemyPrefab, GetRandomSpawnPosition(), Quaternion.identity);
+                
+                spawnedEnemies.Add(newEnemyGO);
+
+                SistemaDeVida vidaInimigo = newEnemyGO.GetComponent<SistemaDeVida>();
+                if(vidaInimigo != null)
+                {
+                    vidaInimigo.recompensaPorMorte = enemyToSpawn.moneyOnDeath;
+                }
+                EnemyMovement enemyMovement = newEnemyGO.GetComponent<EnemyMovement>();
+                if (enemyMovement != null)
+                {
+                    enemyMovement.alvoObjeto = spawnCenter.gameObject;
+                }
+                else
+                {
+                    Debug.LogWarning($"O prefab do inimigo '{enemyToSpawn.name}' não possui o componente EnemyMovement!");
+                }
+                
+                threatBudget -= enemyToSpawn.threatCost;
                 yield return new WaitForSeconds(spawnInterval);
             }
             
-            Debug.Log($"Round {currentRound} concluído. Aguardando para o próximo.");
-            yield return new WaitForSeconds(roundDuration);
+            float roundEndTime = Time.time + roundDuration;
+
+            while (Time.time < roundEndTime)
+            {
+                spawnedEnemies.RemoveAll(item => item == null);
+
+                if (spawnedEnemies.Count == 0)
+                {
+                    break;
+                }
+
+                yield return new WaitForSeconds(1f);
+            }
         }
     }
 
@@ -111,7 +141,6 @@ public class EnemySpawner : MonoBehaviour
         return availableEnemies[Random.Range(0, availableEnemies.Count)];
     }
 
-    // Este método não precisa de nenhuma alteração, pois ele já usa a variável 'Bounds'
     private Vector3 GetRandomSpawnPosition()
     {
         Vector3 spawnPosition = Vector3.zero;

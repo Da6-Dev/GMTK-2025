@@ -14,6 +14,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Leal_Scenes/opcoesMenu.unity
     guid: f94f59e7a70ba664880f9db15ed5d7e8
+  - enabled: 1
+    path: Assets/Scenes/Fase 1.unity
+    guid: 817bba25813f8ef4c88af0ee2b777f50
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

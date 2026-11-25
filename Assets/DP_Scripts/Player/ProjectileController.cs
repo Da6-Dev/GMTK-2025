@@ -122,7 +122,6 @@ public class ProjectileController : MonoBehaviour
                 {
                     // Se for crítico, primeiro calcula o dano amplificado
                     finalDamage *= this.critMultiplier;
-                    Debug.Log("CRITICAL HIT!");
 
                     // Agora, verifica a condição para EXECUTAR
                     float vidaPercentual = (float)vidaDoAlvo.VidaAtual / vidaDoAlvo.vidaMaxima;
@@ -131,7 +130,6 @@ public class ProjectileController : MonoBehaviour
                         // Rola o dado para a chance de execução
                         if (Random.Range(0f, 1f) < this.executeChance)
                         {
-                            Debug.Log("EXECUTE!");
                             finalDamage = 999999; // Dano massivo para garantir a morte
                         }
                     }

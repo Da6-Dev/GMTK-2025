@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class EnemyAttack : MonoBehaviour
 {
@@ -19,48 +20,37 @@ public class EnemyAttack : MonoBehaviour
     [Tooltip("O ponto de onde o projétil será disparado.")]
     public Transform pontoDeDisparo;
 
-    // Variáveis privadas
-    private EnemyMovement ia; // Corrigido de InimigoIA para EnemyMovement
+    private EnemyMovement ia;
     private float proximoAtaquePermitido = 0f;
     private float damageModifier = 1f;
+    private Animator animator;
 
     void Awake()
     {
-        // Pega o componente de IA para saber se está no alcance
-        ia = GetComponent<EnemyMovement>(); // Corrigido de InimigoIA para EnemyMovement
+        ia = GetComponent<EnemyMovement>();
+        animator = GetComponent<Animator>();
     }
 
     void Update()
     {
-        // Se a IA não encontrou o alvo, não faz nada.
         if (ia == null || ia.alvoObjeto == null) return;
 
-        // Calcula a distância até o alvo
         float distancia = Vector2.Distance(transform.position, ia.alvoObjeto.transform.position);
 
-        // Verifica se está no alcance de parada (que agora consideramos alcance de ATIRAR)
-        // e se o tempo de cooldown do ataque já passou.
         if (distancia <= ia.distanciaParaParar && Time.time >= proximoAtaquePermitido)
         {
-            if (!ehMelee) // Se for um inimigo de ataque à distância
+            if (!ehMelee)
             {
                 AtacarADistancia();
             }
-            // A lógica de ataque melee será tratada por colisão para ser mais simples.
         }
     }
 
-    // Para o ataque MELEE, usamos a física de colisão.
-    // Garante que o inimigo e o alvo tenham um Collider2D.
-    // O collider do INIMIGO deve ser um Trigger.
-    void OnTriggerStay2D(Collider2D other)
+    void OnCollisionStay2D(Collision2D collision)
     {
-        // Se não for melee, ou se o tempo de ataque não passou, ou se não for o alvo, ignora.
-        if (!ehMelee || Time.time < proximoAtaquePermitido || other.gameObject != ia.alvoObjeto) return;
+        if (!ehMelee || Time.time < proximoAtaquePermitido || collision.gameObject != ia.alvoObjeto) return;
 
-        // Tenta pegar o componente de vida do objeto que colidiu
-        // Supondo que você tenha um script "SistemaDeVida"
-        SistemaDeVida vidaDoAlvo = other.GetComponent<SistemaDeVida>();
+        SistemaDeVida vidaDoAlvo = collision.gameObject.GetComponent<SistemaDeVida>();
 
         if (vidaDoAlvo != null)
         {
@@ -70,34 +60,39 @@ public class EnemyAttack : MonoBehaviour
 
     private void AtacarCorpoACorpo(SistemaDeVida alvo)
     {
-        // Calcula o dano final com o modificador
+        // Para o movimento do inimigo
+        if (ia != null)
+            ia.podeMover = false;
+
+        animator.SetTrigger("Attack");
+
         int danoFinal = Mathf.RoundToInt(dano * damageModifier);
 
-        Debug.Log(gameObject.name + " ataca corpo a corpo, causando " + danoFinal + " de dano.");
-        alvo.ReceberDano(danoFinal); // Usa o dano final
+        alvo.ReceberDano(danoFinal);
 
         proximoAtaquePermitido = Time.time + tempoEntreAtaques;
+
+        // Opcional: reabilite o movimento após o ataque, se quiser
+        StartCoroutine(VoltarAMoverDepoisDe(tempoEntreAtaques));
     }
 
     private void AtacarADistancia()
     {
-        // Validações
+        animator.SetTrigger("Attack");
+
         if (prefabDoProjetil == null || pontoDeDisparo == null)
         {
             Debug.LogError("Inimigo ranged " + gameObject.name + " não tem prefab de projétil ou ponto de disparo configurado!");
             return;
         }
 
-        Debug.Log(gameObject.name + " atira em direção ao alvo.");
-
         GameObject projetil = Instantiate(prefabDoProjetil, pontoDeDisparo.position, pontoDeDisparo.rotation);
 
         EnemyProjectile scriptDoProjetil = projetil.GetComponent<EnemyProjectile>();
         if (scriptDoProjetil != null)
         {
-            // Calcula o dano final com o modificador
             int danoFinal = Mathf.RoundToInt(dano * damageModifier);
-            scriptDoProjetil.danoCausado = danoFinal; // Passa o dano final para o projétil
+            scriptDoProjetil.danoCausado = danoFinal;
         }
 
         proximoAtaquePermitido = Time.time + tempoEntreAtaques;
@@ -106,5 +101,12 @@ public class EnemyAttack : MonoBehaviour
     public void SetDamageModifier(float modifier)
     {
         this.damageModifier = modifier;
+    }
+
+    private IEnumerator VoltarAMoverDepoisDe(float tempo)
+    {
+        yield return new WaitForSeconds(tempo);
+        if (ia != null)
+            ia.podeMover = true;
     }
 }

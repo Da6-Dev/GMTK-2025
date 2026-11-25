@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerShooting : MonoBehaviour // NOME DA CLASSE MUDOU
+public class PlayerShooting : MonoBehaviour
 {
     [Header("Referências")]
     [Tooltip("Array com 8 sprites para a mira. 0=Direita, e segue em sentido horário.")]
@@ -8,32 +8,45 @@ public class PlayerShooting : MonoBehaviour // NOME DA CLASSE MUDOU
     [Tooltip("O objeto (bala) que será disparado.")]
     public GameObject projetilPrefab;
     [Tooltip("O ponto de origem de onde os projéteis são disparados.")]
+
+    public GameObject gun;
     public Transform pontoDeTiro;
-
-    // --- VARIÁVEIS DE STATS REMOVIDAS DAQUI ---
-    // O intervaloDeTiro, dispersaoMaxima, etc., foram removidos.
-    // Agora eles serão lidos do PlayerStats.
-
     private SpriteRenderer spriteRenderer;
     private Camera mainCamera;
     private float angulo;
     private float proximoTiro;
     private float dispersaoAtual;
 
-    // NOVO: Referência para o nosso script de stats
     private PlayerStats stats;
+
+    public Texture2D cursorTexture;
+    public Vector2 hotspot = Vector2.zero;
+
+    public AudioClip somTiro;
+    private AudioSource audioSource;
+
+    void Awake()
+    {
+        Cursor.SetCursor(cursorTexture, hotspot, CursorMode.Auto);
+        DontDestroyOnLoad(gameObject); // Para manter o cursor em todas as cenas
+    }
 
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         mainCamera = Camera.main;
 
-        // NOVO: Pegamos a instância do PlayerStats no início.
         stats = PlayerStats.Instance;
         if (stats == null)
         {
             Debug.LogError("ERRO: PlayerStats.Instance não foi encontrado na cena!");
-            this.enabled = false; // Desativa o script se o cérebro não for encontrado.
+            this.enabled = false;
+        }
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
         }
     }
 
@@ -42,8 +55,7 @@ public class PlayerShooting : MonoBehaviour // NOME DA CLASSE MUDOU
         HandleAim();
         HandleShooting();
 
-        // NOVO: Verifica se a tecla para ativar o Overclock foi pressionada
-        if (Input.GetKeyDown(KeyCode.R)) // Usando a tecla R como exemplo
+        if (Input.GetKeyDown(KeyCode.R))
         {
             stats.ActivateOverclock();
         }
@@ -56,13 +68,28 @@ public class PlayerShooting : MonoBehaviour // NOME DA CLASSE MUDOU
         angulo = Mathf.Atan2(direcaoDaMira.y, direcaoDaMira.x) * Mathf.Rad2Deg;
         int indexDoSprite = GetIndexPorAngulo(angulo);
         spriteRenderer.sprite = spritesDeMira[indexDoSprite];
+
+        // Rotaciona a gun para mirar no mouse
+        if (gun != null)
+        {
+            gun.transform.rotation = Quaternion.Euler(0, 0, angulo);
+
+            // Flip horizontal (X) quando mirar para a DIREITA (ângulo entre -90 e 90)
+            if (angulo > -90f && angulo < 90f)
+            {
+                gun.transform.localScale = new Vector3(-1, 1, 1);
+            }
+            else
+            {
+                gun.transform.localScale = new Vector3(-1, -1, 1);
+            }
+        }
     }
 
     void HandleShooting()
     {
         if (Input.GetMouseButton(0))
         {
-            // MODIFICADO: Multiplicamos pelo spreadMultiplier para reduzir a dispersão com o upgrade.
             float maxSpreadFinal = stats.maxSpread * stats.spreadMultiplier;
             float increaseRateFinal = stats.spreadIncreaseRate * stats.spreadMultiplier;
 
@@ -83,6 +110,10 @@ public class PlayerShooting : MonoBehaviour // NOME DA CLASSE MUDOU
     void Shoot()
     {
         if (projetilPrefab == null || pontoDeTiro == null) return;
+
+        // Toca o som de tiro
+        if (somTiro != null && audioSource != null)
+            audioSource.PlayOneShot(somTiro);
 
         int totalProjectiles = 1 + stats.additionalProjectiles;
         float spreadAngle = 10f; // Ângulo em graus entre os projéteis extras
@@ -112,7 +143,6 @@ public class PlayerShooting : MonoBehaviour // NOME DA CLASSE MUDOU
 
             if (projController != null)
             {
-                // O Initialize agora precisa do pierceCount
                 projController.Initialize(
                     stats.CurrentDamage,
                     stats.baseProjectileSpeed,

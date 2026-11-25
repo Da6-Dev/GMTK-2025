@@ -6,44 +6,61 @@ public class SistemaDeVida : MonoBehaviour
     [Tooltip("A quantidade máxima de vida que este objeto pode ter.")]
     public int vidaMaxima = 100;
 
-    // Variável privada para armazenar a vida atual.
-    public int vidaAtual;
+    [HideInInspector] 
+    public int recompensaPorMorte = 0;
+    private int vidaAtual;
     private float damageMultiplier = 1f; 
 
-    // A propriedade 'get' permite que outros scripts leiam a vida atual,
-    // mas o 'private set' impede que eles a modifiquem diretamente.
+    private Animator animator;
+    private bool estaMorto = false;
+    public float tempoAnimacaoMorte = 1f;
+
+    [Header("Áudio (apenas para Crystal)")]
+    public AudioClip somDanoFraco;
+    public AudioClip somDanoMedio;
+    public AudioClip somDanoForte;
+    private AudioSource audioSource;
+
     public int VidaAtual
     {
         get { return vidaAtual; }
         private set { vidaAtual = value; }
     }
 
-    // Start é chamado antes do primeiro frame.
+    void Awake()
+    {
+        animator = GetComponent<Animator>(); // Pega o Animator
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+    }
+
     void Start()
     {
-        // Ao iniciar, a vida atual é definida como a vida máxima.
         vidaAtual = vidaMaxima;
     }
 
-    // --- Função Pública para Causar Dano ---
-    // Outros scripts (como o do projétil) chamarão esta função.
     public void ReceberDano(int quantidadeDeDano)
     {
-        // Reduz a vida atual pela quantidade de dano recebido.
+        if (estaMorto) return;
+
         int danoFinal = Mathf.RoundToInt(quantidadeDeDano * damageMultiplier);
         vidaAtual -= danoFinal;
 
-        // Imprime no console para sabermos que o dano foi recebido (ótimo para debugar).
-        Debug.Log(gameObject.name + " recebeu " + danoFinal + " de dano. Vida restante: " + vidaAtual);
+        // Se for o Crystal, toca um som aleatório entre os três disponíveis
+        if (CompareTag("Crystal"))
+        {
+            AudioClip[] sons = new AudioClip[] { somDanoFraco, somDanoMedio, somDanoForte };
+            var sonsValidos = System.Array.FindAll(sons, s => s != null);
+            if (sonsValidos.Length > 0 && !audioSource.isPlaying)
+            {
+                int idx = Random.Range(0, sonsValidos.Length);
+                audioSource.PlayOneShot(sonsValidos[idx]);
+            }
+        }
 
-        // --- AQUI VOCÊ PODE ADICIONAR FEEDBACK VISUAL/SONORO ---
-        // Ex: Chamar uma função para piscar o sprite de vermelho, tocar um som de "hit", etc.
-        // StartCoroutine(PiscarFeedbackDeDano());
-
-        // Verifica se a vida chegou a zero ou menos.
         if (vidaAtual <= 0)
         {
-            // Garante que a vida não fique negativa no display.
             vidaAtual = 0;
             Morrer();
         }
@@ -56,14 +73,22 @@ public class SistemaDeVida : MonoBehaviour
 
     private void Morrer()
     {
-        // Imprime no console que o objeto morreu.
-        Debug.Log(gameObject.name + " morreu!");
+        estaMorto = true;
+        vidaAtual = 0;
 
-        // --- AQUI VOCÊ ADICIONA AS CONSEQUÊNCIAS DA MORTE ---
-        // Ex: Tocar uma animação de explosão, dropar itens, adicionar pontos ao jogador, etc.
-        // Instantiate(efeitoDeExplosao, transform.position, Quaternion.identity);
+        // Aciona a animação de morte
+        animator.SetTrigger("Die");
 
-        // A ação mais simples é destruir o GameObject.
-        Destroy(gameObject);
+        GetComponent<Rigidbody2D>().simulated = false;
+        GetComponent<EnemyMovement>().enabled = false;
+        GetComponent<EnemyAttack>().enabled = false;
+        GetComponent<Collider2D>().enabled = false;
+
+        if (recompensaPorMorte > 0)
+        {
+            EconomyManager.Instance.AdicionarDinheiro(recompensaPorMorte);
+        }
+
+        Destroy(gameObject, tempoAnimacaoMorte);
     }
 }
